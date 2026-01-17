@@ -1,7 +1,7 @@
 {
-  "sydney": "UNKNOWN",
-  "melbourne": "UNKNOWN",
-  "brisbane": "UNKNOWN",
-  "adelaide": "UNKNOWN",
-  "perth": "UNKNOWN"
+  "sydney": "WAIT",
+  "melbourne": "WAIT",
+  "brisbane": "WAIT",
+  "adelaide": "WAIT",
+  "perth": "WAIT"
 }
