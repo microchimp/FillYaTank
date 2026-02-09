@@ -1,7 +1,7 @@
 {
   "sydney": "WAIT",
-  "melbourne": "BUY",
-  "brisbane": "BUY",
+  "melbourne": "WAIT",
+  "brisbane": "WAIT",
   "adelaide": "WAIT",
-  "perth": "WAIT"
+  "perth": "BUY"
 }
