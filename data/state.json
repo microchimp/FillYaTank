@@ -2,6 +2,6 @@
   "sydney": "WAIT",
   "melbourne": "WAIT",
   "brisbane": "WAIT",
-  "adelaide": "WAIT",
-  "perth": "BUY"
+  "adelaide": "BUY",
+  "perth": "WAIT"
 }
