@@ -17,6 +17,7 @@ from datetime import datetime
 from html import escape, unescape
 from pathlib import Path
 from urllib.parse import quote
+from zoneinfo import ZoneInfo
 
 import requests
 from bs4 import BeautifulSoup
@@ -375,6 +376,16 @@ def send_email(to_email: str, subject: str, html_body: str, headers: dict | None
 FORWARD_URL = "https://fillyatank.app/?ref=fwd"
 
 
+def filled_link(email: str, city: str) -> str:
+    """Signed 'I filled my tank' link. u is an anonymous id, never the email itself."""
+    u = base64.urlsafe_b64encode(
+        hmac.new(SECRET_KEY.encode(), f"subscriber|{email}".encode(), hashlib.sha256).digest()[:12]
+    ).decode().rstrip("=")
+    day = datetime.now(ZoneInfo("Australia/Sydney")).strftime("%Y-%m-%d")
+    token = generate_token(u, city, f"{day}|filled")
+    return f"{SITE_URL}/filled.html?city={city}&d={day}&u={u}&t={token}"
+
+
 def send_alert(email: str, city: str, subject: str, headline: str, details: list[str]) -> bool:
     """Send a fill-up alert (HTML and plain text) with one-click unsubscribe."""
     unsubscribe_token = generate_token(email, city)
@@ -388,6 +399,7 @@ def send_alert(email: str, city: str, subject: str, headline: str, details: list
     if SIMULATE_BUY_CITY or os.environ.get("SIMULATE_PERTH_JUMP", "").lower() == "true":
         subject = f"[TEST] {subject}"
 
+    filled_url = filled_link(email, city)
     detail_html = "".join(
         f'<p style="font-size: 15px; line-height: 1.6; color: #444; margin: 0 0 10px 0;">{escape(line)}</p>'
         for line in details
@@ -402,6 +414,12 @@ def send_alert(email: str, city: str, subject: str, headline: str, details: list
     <p style="font-size: 18px; line-height: 1.6; margin: 0 0 20px 0;">{escape(headline)}</p>
     <p style="font-size: 26px; font-weight: 700; margin: 0 0 20px 0; color: #1e7d46;">Time to fill ya tank!</p>
     {detail_html}
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin: 22px 0 6px 0;">
+        <tr><td style="border-radius: 8px; background: #1e7d46;">
+            <a href="{filled_url}" style="display: inline-block; padding: 12px 22px; font-size: 16px; font-weight: 700; color: #ffffff; text-decoration: none; border-radius: 8px;">⛽ I filled my tank</a>
+        </td></tr>
+    </table>
+    <p style="font-size: 13px; color: #888; margin: 0;">Tap after you fill up. It helps us see if FillYaTank is working.</p>
     <p style="font-size: 15px; line-height: 1.6; margin: 20px 0 0 0;">
         Know someone who drives? <a href="{FORWARD_URL}" style="color: #1e7d46;">Forward this to a mate</a>. It's free.
     </p>
@@ -417,6 +435,7 @@ def send_alert(email: str, city: str, subject: str, headline: str, details: list
         headline,
         "Time to fill ya tank!",
         *details,
+        f"Filled up? Let us know: {filled_url}",
         f"Know someone who drives? Forward this to a mate: {FORWARD_URL}",
         f"You're getting this because you signed up for {city.capitalize()} alerts at fillyatank.app.\nUnsubscribe: {unsubscribe_url}",
     ])
@@ -451,7 +470,7 @@ def send_stats_report(days: int = 7) -> bool:
     response.raise_for_status()
     stats = response.json()
     
-    events = ["views", "signups", "confirmations", "unsubscribes"]
+    events = ["views", "signups", "confirmations", "unsubscribes", "filled"]
     totals = {event: sum(day[event] for day in stats["daily"]) for event in events}
     total_subscribers = sum(stats["subscribersByCity"].values())
     
@@ -482,11 +501,12 @@ def send_stats_report(days: int = 7) -> bool:
         <strong>{totals['views']}</strong> homepage views ·
         <strong>{totals['signups']}</strong> sign-ups ·
         <strong>{totals['confirmations']}</strong> confirmed ·
-        <strong>{totals['unsubscribes']}</strong> unsubscribed<br>
+        <strong>{totals['unsubscribes']}</strong> unsubscribed ·
+        <strong>{totals['filled']}</strong> filled up<br>
         <strong>{total_subscribers}</strong> subscribers in total
     </p>
     <table style="border-collapse: collapse; font-size: 14px; margin: 0 0 24px 0;">
-        <tr><th {head.replace('right', 'left')}>Date</th><th {head}>Views</th><th {head}>Sign-ups</th><th {head}>Confirmed</th><th {head}>Unsubscribed</th></tr>
+        <tr><th {head.replace('right', 'left')}>Date</th><th {head}>Views</th><th {head}>Sign-ups</th><th {head}>Confirmed</th><th {head}>Unsubscribed</th><th {head}>Filled up</th></tr>
         {rows}
     </table>
     <table style="border-collapse: collapse; font-size: 14px; margin: 0 0 24px 0;">

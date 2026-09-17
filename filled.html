@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex">
-    <title>Unsubscribe — FillYaTank</title>
+    <title>Thanks for filling up — FillYaTank</title>
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="/styles.css?v=18">
 </head>
@@ -26,26 +26,27 @@
         <div class="simple-card" role="status" aria-live="polite">
             <div id="loading">
                 <svg class="state-icon busy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10" stroke-opacity="0.25"/><path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"/></svg>
-                <h1>Unsubscribing…</h1>
+                <h1>One sec…</h1>
             </div>
 
             <div id="success" class="hidden">
                 <svg class="state-icon ok" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M8 12.5l3 3 5-6"/></svg>
-                <h1>You've been unsubscribed</h1>
-                <p>No more emails. Changed your mind? Sign up again any time.</p>
-                <a class="button" href="/">Back to FillYaTank</a>
+                <h1>Nice one! ⛽</h1>
+                <p>Thanks for letting us know. Know someone who drives?</p>
+                <a class="button" href="/?ref=filled">Share FillYaTank</a>
             </div>
 
             <div id="error" class="hidden">
                 <svg class="state-icon bad" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6M9 9l6 6"/></svg>
-                <h1>We couldn't unsubscribe you</h1>
-                <p id="errorMessage">This unsubscribe link is invalid.</p>
-                <p>Try the link in your latest FillYaTank email.</p>
+                <h1>That link didn't work</h1>
+                <p>Thanks for filling up anyway!</p>
+                <a class="button" href="/">Back to FillYaTank</a>
             </div>
         </div>
     </main>
 
     <script>
+        // Counted only when this page runs in a browser, so email link scanners don't inflate the total
         const API_ENDPOINT = 'https://api.fillyatank.app';
 
         function show(id) {
@@ -54,38 +55,18 @@
             });
         }
 
-        function showError(message) {
-            document.getElementById('errorMessage').textContent = message;
-            show('error');
-        }
-
-        async function handleUnsubscribe() {
+        async function recordFill() {
             const params = new URLSearchParams(window.location.search);
-            const email = params.get('email');
-            const city = params.get('city');
-            const token = params.get('token');
-
-            if (!email || !city || !token) {
-                showError('This unsubscribe link is incomplete.');
-                return;
-            }
-
+            const query = ['city', 'd', 'u', 't'].map(k => `${k}=${encodeURIComponent(params.get(k) || '')}`).join('&');
             try {
-                const response = await fetch(
-                    `${API_ENDPOINT}?action=unsubscribe&email=${encodeURIComponent(email)}&city=${encodeURIComponent(city)}&token=${encodeURIComponent(token)}`
-                );
-                if (response.ok) {
-                    show('success');
-                } else {
-                    const data = await response.json().catch(() => ({}));
-                    showError(data.message || 'This unsubscribe link is invalid.');
-                }
+                const response = await fetch(`${API_ENDPOINT}/?action=filled&${query}`, { method: 'POST' });
+                show(response.ok ? 'success' : 'error');
             } catch (e) {
-                showError("We couldn't reach the server. Please check your connection and reload this page.");
+                show('success');
             }
         }
 
-        handleUnsubscribe();
+        recordFill();
     </script>
 </body>
 </html>

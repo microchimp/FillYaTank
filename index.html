@@ -4,12 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FillYaTank — Know when petrol is cheapest in your city</title>
-    <meta name="description" content="Free email alerts when petrol prices hit the bottom of the price cycle in Sydney, Melbourne, Brisbane, Adelaide and Perth. Based on ACCC buying tips. No ads.">
+    <meta name="description" content="Free email alerts when petrol hits the bottom of the price cycle in Sydney, Melbourne, Brisbane, Adelaide and Perth. No ads.">
     <link rel="canonical" href="https://fillyatank.app/">
     <meta name="theme-color" content="#fafaf7">
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
     <link rel="preload" href="/fonts/caveat.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="stylesheet" href="/styles.css?v=17">
+    <link rel="stylesheet" href="/styles.css?v=18">
 
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="FillYaTank">
@@ -47,7 +47,7 @@
             <div class="wrap hero-grid">
                 <div>
                     <h1>Know when petrol is <span class="mark-underline">cheapest</span> in your city.</h1>
-                    <p class="lead">Petrol prices in Australia's five biggest cities rise and fall in a cycle. We email you once, when your city hits the bottom.</p>
+                    <p class="lead">Petrol prices go up and down in a cycle. We email you when they hit the bottom.</p>
 
                     <form class="signup" id="signupForm" action="https://api.fillyatank.app/" method="POST">
                         <div class="field-row">
@@ -96,6 +96,7 @@
                         <div class="email-body">
                             <p class="email-subject">Perth petrol jumps about 15c tomorrow. Fill up today</p>
                             <p class="email-cta">Time to fill ya tank!</p>
+                            <span class="email-button">⛽ I filled my tank</span>
                             <p class="email-footer">Unsubscribe</p>
                         </div>
                     </div>
@@ -106,8 +107,8 @@
 
         <section class="section tone-white" id="how" aria-labelledby="how-title">
             <div class="wrap">
-                <h2 id="how-title">How the petrol price cycle works</h2>
-                <p class="section-intro">Prices don't move randomly. In these five cities they follow a pattern, and the bottom is the time to fill up.</p>
+                <h2 id="how-title">The price cycle</h2>
+                <p class="section-intro">Up, down, repeat. The bottom is when to fill up.</p>
 
                 <div class="cycle-grid">
                     <figure class="cycle-chart" style="margin:0">
@@ -154,9 +155,9 @@
                     </figure>
 
                     <ol class="cycle-points">
-                        <li><span class="num" aria-hidden="true">1</span><div><strong>Prices climb</strong><span>Retailers push prices up over a few days. Rises of 20 cents a litre or more are common.</span></div></li>
-                        <li><span class="num" aria-hidden="true">2</span><div><strong>Then they slowly fall</strong><span>Over the next couple of weeks, prices drift back down as stations compete.</span></div></li>
-                        <li><span class="num good" aria-hidden="true">3</span><div><strong>At the bottom, we email you</strong><span>When the ACCC says prices are around their lowest point, you get one email: fill up now, before prices climb again.</span></div></li>
+                        <li><span class="num" aria-hidden="true"><svg viewBox="0 0 40 40"><path class="num-ring" d="M20.5 3.2C31 3.4 37.2 10.6 36.8 20.4C36.4 30.6 29.6 37 19.6 36.8C9.4 36.6 3 29.8 3.2 19.8C3.4 9.8 10.4 3 20.5 3.2Z"/><text class="num-digit" x="19.5" y="18.8">1</text></svg></span><div><strong>Prices jump</strong><span>Up 20c a litre or more in a few days.</span></div></li>
+                        <li><span class="num" aria-hidden="true"><svg viewBox="0 0 40 40"><path class="num-ring" d="M20.5 3.2C31 3.4 37.2 10.6 36.8 20.4C36.4 30.6 29.6 37 19.6 36.8C9.4 36.6 3 29.8 3.2 19.8C3.4 9.8 10.4 3 20.5 3.2Z"/><text class="num-digit" x="19.5" y="18.8">2</text></svg></span><div><strong>Then slowly fall</strong><span>Down over the next week or two.</span></div></li>
+                        <li><span class="num good" aria-hidden="true"><svg viewBox="0 0 40 40"><path class="num-ring" d="M20.5 3.2C31 3.4 37.2 10.6 36.8 20.4C36.4 30.6 29.6 37 19.6 36.8C9.4 36.6 3 29.8 3.2 19.8C3.4 9.8 10.4 3 20.5 3.2Z"/><text class="num-digit" x="19.5" y="18.8">3</text></svg></span><div><strong>We email you at the bottom</strong><span>Fill up before the next jump.</span></div></li>
                     </ol>
                 </div>
             </div>
@@ -164,20 +165,23 @@
 
         <section class="section tone-tint" aria-labelledby="steps-title">
             <div class="wrap">
-                <h2 id="steps-title">How FillYaTank works</h2>
-                <p class="section-intro">It takes about 30 seconds to set up, and there's nothing to install.</p>
+                <h2 id="steps-title">How it works</h2>
+                <p class="section-intro">30 seconds. Nothing to install.</p>
                 <ol class="steps">
                     <li>
-                        <h3>Choose your city</h3>
-                        <p>Enter your email and pick Sydney, Melbourne, Brisbane, Adelaide or Perth. Confirm with the link we send.</p>
+                        <span class="num" aria-hidden="true"><svg viewBox="0 0 40 40"><path class="num-ring" d="M20.5 3.2C31 3.4 37.2 10.6 36.8 20.4C36.4 30.6 29.6 37 19.6 36.8C9.4 36.6 3 29.8 3.2 19.8C3.4 9.8 10.4 3 20.5 3.2Z"/><text class="num-digit" x="19.5" y="18.8">1</text></svg></span>
+                        <h3>Pick your city</h3>
+                        <p>Sydney, Melbourne, Brisbane, Adelaide or Perth.</p>
                     </li>
                     <li>
-                        <h3>We watch the cycle</h3>
-                        <p>Every weekday we check the ACCC's buying tip for your city. For Perth, we also check FuelWatch's prices for tomorrow.</p>
+                        <span class="num" aria-hidden="true"><svg viewBox="0 0 40 40"><path class="num-ring" d="M20.5 3.2C31 3.4 37.2 10.6 36.8 20.4C36.4 30.6 29.6 37 19.6 36.8C9.4 36.6 3 29.8 3.2 19.8C3.4 9.8 10.4 3 20.5 3.2Z"/><text class="num-digit" x="19.5" y="18.8">2</text></svg></span>
+                        <h3>We check the prices</h3>
+                        <p>ACCC buying tips every weekday. FuelWatch for Perth.</p>
                     </li>
                     <li>
-                        <h3>You get one email</h3>
-                        <p>When prices reach the bottom, we email you. Fill up soon, before prices climb again.</p>
+                        <span class="num" aria-hidden="true"><svg viewBox="0 0 40 40"><path class="num-ring" d="M20.5 3.2C31 3.4 37.2 10.6 36.8 20.4C36.4 30.6 29.6 37 19.6 36.8C9.4 36.6 3 29.8 3.2 19.8C3.4 9.8 10.4 3 20.5 3.2Z"/><text class="num-digit" x="19.5" y="18.8">3</text></svg></span>
+                        <h3>You get an email</h3>
+                        <p>Only when it's time to fill up.</p>
                     </li>
                 </ol>
             </div>
@@ -185,8 +189,8 @@
 
         <section class="section tone-white" id="today" aria-labelledby="today-title">
             <div class="wrap">
-                <h2 id="today-title">Where each city is today</h2>
-                <p class="section-intro">Based on the ACCC's latest buying tips.</p>
+                <h2 id="today-title">Right now</h2>
+                <p class="section-intro">From the ACCC's latest buying tips.</p>
 
                 <div class="status-card">
                     <ul class="status-list">
@@ -201,7 +205,7 @@
                     </div>
                 </div>
 
-                <p class="status-link"><a href="https://www.accc.gov.au/consumers/petrol-and-fuel/petrol-price-cycles-in-the-5-largest-cities" rel="noopener">See each city's latest price chart on the ACCC website ↗</a></p>
+                <p class="status-link"><a href="https://www.accc.gov.au/consumers/petrol-and-fuel/petrol-price-cycles-in-the-5-largest-cities" rel="noopener">See the ACCC's price charts ↗</a></p>
             </div>
         </section>
 
@@ -211,39 +215,39 @@
                 <div class="faq">
                     <details>
                         <summary>Is it really free?</summary>
-                        <p>Yes. FillYaTank is a free, non-commercial project run by one person. There are no ads and no paid plans, and your email is never sold or shared.</p>
+                        <p>Yes. No ads, no paid plans, and we never sell or share your email.</p>
                     </details>
                     <details>
                         <summary>How often will you email me?</summary>
-                        <p>One email per city, per cycle: only when your city reaches the bottom. According to the ACCC, a typical cycle lasts about 5 weeks in Sydney, 6 in Melbourne, 6½ in Brisbane, 2½ in Adelaide and 1 week in Perth. Nothing else.</p>
+                        <p>Only when your city hits the bottom: every few weeks in the east, weekly in Perth. Nothing else.</p>
                     </details>
                     <details>
                         <summary>Why is there a price cycle at all?</summary>
-                        <p>According to the ACCC, price cycles come from retailers' own pricing decisions, not from changes in wholesale costs. One or more retailers lead a sharp price rise, others follow, and prices then slowly drift back down. It isn't illegal, but there's no cost reason for it. If you think prices shouldn't work this way, tell your local MP. You can <a href="https://www.aph.gov.au/Senators_and_Members/Members" rel="noopener">find your federal MP here</a>.</p>
+                        <p>One retailer pushes prices up, others follow, then prices drift down. The ACCC says it isn't driven by costs. Don't like it? <a href="https://www.aph.gov.au/Senators_and_Members/Members" rel="noopener">Tell your MP</a>.</p>
                     </details>
                     <details>
                         <summary>Doesn't PetrolSpy already do this?</summary>
-                        <p>Sort of. Apps like PetrolSpy are great for finding the cheapest station near you, but you have to remember to check them, and they're supported by ads. FillYaTank comes to you instead: one email at the right time, no app and no ads.</p>
+                        <p>Sort of. PetrolSpy shows prices, but you have to check it and it has ads. We just email you when it matters.</p>
                     </details>
                     <details>
                         <summary>Where does the information come from?</summary>
-                        <p>The ACCC (Australian Competition and Consumer Commission) publishes petrol buying tips for these five cities on weekdays, and we check them every weekday. For Perth we also use FuelWatch (Government of WA), which publishes every station's price for the next day each afternoon. FillYaTank isn't affiliated with either.</p>
+                        <p>ACCC buying tips, checked every weekday, plus FuelWatch's next-day prices for Perth. We're not affiliated with either.</p>
                     </details>
                     <details>
                         <summary>How long do I have to fill up?</summary>
-                        <p>In Perth, the email arrives the afternoon before prices jump, and WA's FuelWatch rules lock each day's prices in for 24 hours from 6am, so you have the rest of the day. In the other cities prices can climb quickly once a new cycle starts, so sooner is better.</p>
+                        <p>In Perth, the rest of the day: the email arrives the afternoon before prices jump. Elsewhere, the sooner the better.</p>
                     </details>
                     <details>
                         <summary>Why only these five cities?</summary>
-                        <p>Regular price cycles happen in Australia's five largest cities. The ACCC doesn't publish buying tips for Canberra, Hobart, Darwin or most regional areas because prices there don't cycle in the same way.</p>
+                        <p>They're where the ACCC tracks regular price cycles.</p>
                     </details>
                     <details>
                         <summary>What do you store about me?</summary>
-                        <p>Just your email address and city. No names, no tracking cookies and no analytics scripts. Page visits are counted anonymously.</p>
+                        <p>Just your email and city. No tracking cookies. Visits are counted anonymously.</p>
                     </details>
                     <details>
                         <summary>How do I unsubscribe?</summary>
-                        <p>Every email has a one-click unsubscribe link.</p>
+                        <p>One click, from any email.</p>
                     </details>
                 </div>
             </div>
@@ -252,7 +256,7 @@
         <section class="section cta-band tone-accent" aria-labelledby="cta-title">
             <div class="wrap">
                 <h2 id="cta-title">Stop filling up at the peak</h2>
-                <p>One free email when your city's prices hit the bottom.</p>
+                <p>One free email when prices bottom out.</p>
                 <div class="cta-doodle-wrap">
                     <span class="margin-note cta-note" aria-hidden="true">takes 30 seconds</span>
                     <svg class="doodle-arrow cta-arrow" viewBox="0 0 60 50" aria-hidden="true"><path d="M4 8 C 18 8, 30 30, 52 30" /><path d="M43 23 L53 30 L43 37" /></svg>
@@ -264,8 +268,8 @@
 
     <footer class="site-footer">
         <div class="wrap">
-            <p>FillYaTank is a free project, inspired by <em>How They Get You</em> by Chris Kohler.</p>
-            <p>Buying tips from the <a href="https://www.accc.gov.au/consumers/petrol-and-fuel/petrol-price-cycles-in-the-5-largest-cities" rel="noopener">ACCC</a>. Not affiliated with the ACCC.</p>
+            <p>A free project inspired by <em>How They Get You</em> by Chris Kohler.</p>
+            <p>Tips from the <a href="https://www.accc.gov.au/consumers/petrol-and-fuel/petrol-price-cycles-in-the-5-largest-cities" rel="noopener">ACCC</a> and FuelWatch. Not affiliated with either.</p>
         </div>
     </footer>
 

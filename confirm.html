@@ -6,7 +6,7 @@
     <meta name="robots" content="noindex">
     <title>Confirm your subscription — FillYaTank</title>
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-    <link rel="stylesheet" href="/styles.css?v=17">
+    <link rel="stylesheet" href="/styles.css?v=18">
 </head>
 <body class="simple-page">
     <header class="site-header">
@@ -27,22 +27,22 @@
             <div id="loading">
                 <svg class="state-icon busy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10" stroke-opacity="0.25"/><path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"/></svg>
                 <h1>Confirming…</h1>
-                <p>Just a moment while we confirm your subscription.</p>
+                <p>One moment…</p>
             </div>
 
             <div id="success" class="hidden">
                 <svg class="state-icon ok" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M8 12.5l3 3 5-6"/></svg>
                 <h1>You're subscribed!</h1>
-                <p id="successText">We'll email you when petrol prices in your city hit the bottom of the cycle.</p>
-                <p>That's the only email you'll get. Add <strong>alerts@fillyatank.app</strong> to your contacts so it doesn't land in spam.</p>
-                <a class="button" href="/#today">See where each city is today</a>
+                <p id="successText">We'll email you when your city hits the bottom.</p>
+                <p>Add <strong>alerts@fillyatank.app</strong> to your contacts so it doesn't land in spam.</p>
+                <a class="button" href="/#today">See today's prices</a>
             </div>
 
             <div id="error" class="hidden">
                 <svg class="state-icon bad" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6M9 9l6 6"/></svg>
                 <h1>That link didn't work</h1>
                 <p id="errorMessage">This confirmation link is invalid or has expired.</p>
-                <p>Links expire after 1 hour. Signing up again only takes a few seconds.</p>
+                <p>Links expire after 1 hour. Just sign up again.</p>
                 <a class="button" href="/">Sign up again</a>
             </div>
         </div>
@@ -82,7 +82,7 @@
                 if (response.ok) {
                     if (CITY_NAMES[city]) {
                         document.getElementById('successText').textContent =
-                            `We'll email you when petrol prices in ${CITY_NAMES[city]} hit the bottom of the cycle.`;
+                            `We'll email you when ${CITY_NAMES[city]} hits the bottom.`;
                     }
                     show('success');
                 } else {

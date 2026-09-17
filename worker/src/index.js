@@ -7,6 +7,7 @@
  * POST /?action=unsubscribe&email&city&token     RFC 8058 one-click unsubscribe
  * GET  /?action=subscribers (Bearer ADMIN_TOKEN) -> {city: [emails]} for main.py
  * POST /?action=view&ref=X                       anonymous homepage view count (optional source)
+ * POST /?action=filled&city&d&u&t              "I filled my tank" click from an alert email (signed, de-duplicated)
  * GET  /?action=health                           freshness of the scheduled jobs (no personal data)
  * Scheduled (daily)                              emails the owner if a scheduled job has stopped
  * GET  /?action=stats&days=N (Bearer ADMIN_TOKEN) -> daily counts + subscribers per city
@@ -35,7 +36,8 @@ Examples:
 "while the price cycle is around a high point, we encourage motorists to use fuel price apps" -> WAIT
 "prices have increased if motorists shop around, they may find some retailers who have not yet increased prices." -> WAIT`;
 
-const STAT_EVENTS = ["views", "signups", "confirmations", "unsubscribes"];
+const STAT_EVENTS = ["views", "signups", "confirmations", "unsubscribes", "filled"];
+const FILLED_RETENTION = 60 * 24 * 60 * 60; // seconds to remember who already clicked for an alert
 const REF_PATTERN = /^[a-z0-9-]{1,24}$/;
 
 // Scheduled jobs publish their last run date to the site; alert if one goes quiet.
@@ -260,6 +262,31 @@ async function handleListSubscribers(request, env) {
   return json(request, await loadSubscribers(env));
 }
 
+// u is an anonymous per-subscriber id (HMAC of the email) made by main.py;
+// t = HMAC("u|city|date|filled") so counts can't be forged or repeated.
+async function handleFilled(request, url, env, ctx) {
+  const city = (url.searchParams.get("city") || "").toLowerCase();
+  const date = url.searchParams.get("d") || "";
+  const u = url.searchParams.get("u") || "";
+  const t = url.searchParams.get("t") || "";
+
+  if (!CITIES.includes(city) || !/^\d{4}-\d{2}-\d{2}$/.test(date) || !/^[A-Za-z0-9_-]{8,40}$/.test(u)) {
+    return json(request, { error: "Invalid link" }, 400);
+  }
+  const expected = await generateToken(env.SECRET_KEY, u, city, `${date}|filled`);
+  if (!timingSafeEqual(expected, t)) {
+    return json(request, { error: "Invalid link" }, 403);
+  }
+
+  const key = `filled:${city}:${date}:${u}`;
+  if (await env.SUBSCRIBERS.get(key)) {
+    return json(request, { success: true, alreadyCounted: true });
+  }
+  await env.SUBSCRIBERS.put(key, "1", { expirationTtl: FILLED_RETENTION });
+  ctx.waitUntil(countEvent(env, "filled"));
+  return json(request, { success: true });
+}
+
 async function handleClassify(request, env) {
   if (!isAdmin(request, env)) return json(request, { error: "Unauthorized" }, 401);
 
@@ -368,6 +395,7 @@ export default {
         // One-click unsubscribe from the List-Unsubscribe email header
         if (action === "unsubscribe") return await handleTokenAction(request, url, env, ctx, action);
         if (action === "classify") return await handleClassify(request, env);
+        if (action === "filled") return await handleFilled(request, url, env, ctx);
         if (action === "view") {
           // Only count views from the real site, not arbitrary POSTs
           if (ALLOWED_ORIGINS.includes(request.headers.get("Origin"))) {
