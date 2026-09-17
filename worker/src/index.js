@@ -6,7 +6,9 @@
  * GET  /?action=unsubscribe&email&city&token     removes subscriber
  * POST /?action=unsubscribe&email&city&token     RFC 8058 one-click unsubscribe
  * GET  /?action=subscribers (Bearer ADMIN_TOKEN) -> {city: [emails]} for main.py
- * POST /?action=view                             anonymous homepage view count
+ * POST /?action=view&ref=X                       anonymous homepage view count (optional source)
+ * GET  /?action=health                           freshness of the scheduled jobs (no personal data)
+ * Scheduled (daily)                              emails the owner if a scheduled job has stopped
  * GET  /?action=stats&days=N (Bearer ADMIN_TOKEN) -> daily counts + subscribers per city
  * POST /?action=classify {text} (Bearer ADMIN_TOKEN) -> {phase: BUY|WAIT|UNSURE} via Workers AI
  *
@@ -34,6 +36,13 @@ Examples:
 "prices have increased if motorists shop around, they may find some retailers who have not yet increased prices." -> WAIT`;
 
 const STAT_EVENTS = ["views", "signups", "confirmations", "unsubscribes"];
+const REF_PATTERN = /^[a-z0-9-]{1,24}$/;
+
+// Scheduled jobs publish their last run date to the site; alert if one goes quiet.
+const HEALTH_CHECKS = [
+  { name: "ACCC price check (weekdays)", file: "/data/last_run.txt", maxAgeDays: 4 },
+  { name: "Perth FuelWatch alert (daily)", file: "/data/perth_last_run.txt", maxAgeDays: 2 }
+];
 const STATS_RETENTION = 400 * 24 * 60 * 60; // seconds
 
 function sydneyDate(date = new Date()) {
@@ -277,6 +286,7 @@ async function handleStats(request, url, env) {
 
   const days = Math.min(Math.max(Number(url.searchParams.get("days")) || 7, 1), 90);
   const daily = [];
+  const refs = {};
   for (let i = days - 1; i >= 0; i--) {
     const date = sydneyDate(new Date(Date.now() - i * 24 * 60 * 60 * 1000));
     const row = { date };
@@ -284,14 +294,67 @@ async function handleStats(request, url, env) {
       row[event] = Number(await env.SUBSCRIBERS.get(`stats:${date}:${event}`)) || 0;
     }
     daily.push(row);
+
+    const refPrefix = `stats:${date}:ref:`;
+    const refKeys = await env.SUBSCRIBERS.list({ prefix: refPrefix });
+    for (const { name } of refKeys.keys) {
+      const ref = name.slice(refPrefix.length);
+      refs[ref] = (refs[ref] || 0) + (Number(await env.SUBSCRIBERS.get(name)) || 0);
+    }
   }
 
   const subscribers = await loadSubscribers(env);
   const subscribersByCity = Object.fromEntries(CITIES.map(city => [city, subscribers[city].length]));
-  return json(request, { daily, subscribersByCity });
+  return json(request, { daily, refs, subscribersByCity });
+}
+
+async function checkHealth(env) {
+  const today = new Date(sydneyDate() + "T00:00:00Z");
+  const results = [];
+  for (const check of HEALTH_CHECKS) {
+    let lastRun = null;
+    try {
+      const response = await fetch(`${env.SITE_URL}${check.file}?t=${Date.now()}`, { cf: { cacheTtl: 0 } });
+      const text = response.ok ? (await response.text()).trim() : "";
+      if (/^\d{4}-\d{2}-\d{2}$/.test(text)) lastRun = text;
+    } catch (err) {
+      // treated as unknown below
+    }
+    const ageDays = lastRun ? Math.round((today - new Date(lastRun + "T00:00:00Z")) / 86400000) : null;
+    results.push({ ...check, lastRun, ageDays, ok: ageDays !== null && ageDays <= check.maxAgeDays });
+  }
+  return results;
+}
+
+async function sendOwnerAlert(env, problems) {
+  if (!env.OWNER_EMAIL) return false;
+  const rows = problems.map(p =>
+    `<li><strong>${p.name}</strong>: ${p.lastRun ? `last ran ${p.lastRun} (${p.ageDays} days ago)` : "last run date not found"}</li>`
+  ).join("");
+  const response = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: { "Authorization": `Bearer ${env.RESEND_API_KEY}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      from: `FillYaTank <${env.FROM_EMAIL}>`,
+      to: [env.OWNER_EMAIL],
+      subject: "⚠️ FillYaTank: a scheduled job has stopped running",
+      html: `<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 520px; margin: 0 auto; padding: 24px; color: #1a1a1a;">
+        <p style="font-size: 16px; line-height: 1.6;">One or more FillYaTank jobs haven't run recently, so subscribers may be missing alerts:</p>
+        <ul style="font-size: 16px; line-height: 1.6;">${rows}</ul>
+        <p style="font-size: 14px; color: #666; line-height: 1.6;">Check the Actions tab on GitHub (microchimp/FillYaTank). GitHub switches off scheduled workflows after 60 days without commits, or a run may be failing.</p>
+      </div>`
+    })
+  });
+  return response.ok;
 }
 
 export default {
+  async scheduled(event, env, ctx) {
+    const results = await checkHealth(env);
+    const problems = results.filter(r => !r.ok);
+    if (problems.length) ctx.waitUntil(sendOwnerAlert(env, problems));
+  },
+
   async fetch(request, env, ctx) {
     if (request.method === "OPTIONS") {
       return new Response(null, { headers: corsHeaders(request) });
@@ -307,7 +370,11 @@ export default {
         if (action === "classify") return await handleClassify(request, env);
         if (action === "view") {
           // Only count views from the real site, not arbitrary POSTs
-          if (ALLOWED_ORIGINS.includes(request.headers.get("Origin"))) ctx.waitUntil(countEvent(env, "views"));
+          if (ALLOWED_ORIGINS.includes(request.headers.get("Origin"))) {
+            ctx.waitUntil(countEvent(env, "views"));
+            const ref = (url.searchParams.get("ref") || "").toLowerCase();
+            if (REF_PATTERN.test(ref)) ctx.waitUntil(countEvent(env, `ref:${ref}`));
+          }
           return new Response(null, { status: 204, headers: corsHeaders(request) });
         }
         return await handleSignup(request, env, ctx);
@@ -317,6 +384,10 @@ export default {
         if (action === "confirm" || action === "unsubscribe") return await handleTokenAction(request, url, env, ctx, action);
         if (action === "subscribers") return await handleListSubscribers(request, env);
         if (action === "stats") return await handleStats(request, url, env);
+        if (action === "health") {
+          const results = await checkHealth(env);
+          return json(request, { ok: results.every(r => r.ok), checks: results.map(({ name, lastRun, ageDays, ok }) => ({ name, lastRun, ageDays, ok })) });
+        }
       }
 
       return json(request, { error: "Method not allowed" }, 405);

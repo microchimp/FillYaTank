@@ -1,0 +1,54 @@
+name: Perth Price Jump Alert
+
+on:
+  schedule:
+    # Daily at 07:00 UTC = 3pm AWST, after FuelWatch publishes tomorrow's prices (2:30pm)
+    - cron: '0 7 * * *'
+  workflow_dispatch:
+    inputs:
+      simulate:
+        description: 'TEST: force a price jump and email only the TEST_EMAIL secret (no commits)'
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
+
+jobs:
+  perth-alert:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Check tomorrow's Perth prices
+        env:
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          FROM_EMAIL: ${{ secrets.FROM_EMAIL }}
+          SITE_URL: ${{ secrets.SITE_URL }}
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
+          ADMIN_TOKEN: ${{ secrets.ADMIN_TOKEN }}
+          TEST_EMAIL: ${{ secrets.TEST_EMAIL }}
+          SIMULATE_PERTH_JUMP: ${{ inputs.simulate }}
+        run: python perth_alert.py
+
+      - name: Commit run record
+        if: ${{ !inputs.simulate }}
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add data/perth_last_run.txt data/perth_alert.json 2>/dev/null || git add data/perth_last_run.txt
+          git diff --staged --quiet && exit 0
+          git commit -m "Update Perth check [skip ci]"
+          git pull --rebase
+          git push

@@ -2,6 +2,15 @@ name = "fillyatank-signup"
 main = "src/index.js"
 compatibility_date = "2026-09-01"
 preview_urls = false
+# Served at api.fillyatank.app (keeps personal account names out of URLs)
+workers_dev = true  # temporary: switch off once the site uses api.fillyatank.app
+routes = [
+  { pattern = "api.fillyatank.app", custom_domain = true }
+]
+
+# Daily health check at 23:00 UTC (9am AEST / 10am AEDT)
+[triggers]
+crons = ["0 23 * * *"]
 
 [vars]
 SITE_URL = "https://fillyatank.app"
@@ -27,3 +36,4 @@ simple = { limit = 5, period = 60 }
 #   RESEND_API_KEY - Resend API key
 #   SECRET_KEY     - HMAC key for confirm/unsubscribe tokens; must match the GitHub secret
 #   ADMIN_TOKEN    - bearer token main.py uses to read the subscriber list; must match the GitHub secret
+#   OWNER_EMAIL    - where outage alerts go

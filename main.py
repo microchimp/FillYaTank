@@ -29,7 +29,7 @@ RESEND_API_KEY = os.environ.get("RESEND_API_KEY")
 FROM_EMAIL = os.environ.get("FROM_EMAIL", "alerts@yourdomain.com")
 SITE_URL = os.environ.get("SITE_URL", "https://fillyatank.app")
 SECRET_KEY = os.environ.get("SECRET_KEY", "change-this-in-production")
-WORKER_URL = os.environ.get("WORKER_URL", "https://fillyatank-signup.p-m-palaniswami.workers.dev")
+WORKER_URL = os.environ.get("WORKER_URL", "https://api.fillyatank.app")
 ADMIN_TOKEN = os.environ.get("ADMIN_TOKEN")
 
 # Test mode: force a WAIT -> BUY transition for one city, email only TEST_EMAIL,
@@ -237,7 +237,8 @@ def resolve_phase(city: str, tip: str, wordings: dict) -> tuple[str, str, bool]:
     
     if key in wordings:
         cached = wordings[key]["phase"]
-        return ("BUY" if cached == "BUY" else "WAIT"), f"saved AI answer: {cached}", False
+        # Only an owner-confirmed BUY sends alerts; UNCONFIRMED_BUY stays WAIT
+        return ("BUY" if cached == "BUY" else "WAIT"), f"saved answer: {cached}", False
     
     if not ADMIN_TOKEN:
         return "WAIT", f"rules: {reason}; AI unavailable (no ADMIN_TOKEN)", False
@@ -248,33 +249,43 @@ def resolve_phase(city: str, tip: str, wordings: dict) -> tuple[str, str, bool]:
         # Don't cache failures; try again next run
         return "WAIT", f"rules: {reason}; AI call failed ({e})", False
     
-    wordings[key] = {"phase": ai_phase, "first_seen": datetime.utcnow().strftime("%Y-%m-%d"), "city": city}
-    return ("BUY" if ai_phase == "BUY" else "WAIT"), f"AI: {ai_phase} ({reason})", True
+    # Never alert subscribers on an AI guess: a BUY waits for the owner to confirm it
+    saved_phase = "UNCONFIRMED_BUY" if ai_phase == "BUY" else ai_phase
+    wordings[key] = {"phase": saved_phase, "first_seen": datetime.utcnow().strftime("%Y-%m-%d"), "city": city}
+    return "WAIT", f"AI: {ai_phase} ({reason})", True
+
+
+def notify_owner(subject: str, body_html: str) -> None:
+    """Email the owner (TEST_EMAIL secret) about something that needs attention."""
+    if not TEST_EMAIL:
+        print(f"Owner notice (no TEST_EMAIL set): {subject}")
+        return
+    html_body = f"""<!DOCTYPE html>
+<html>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 520px; margin: 0 auto; padding: 24px; color: #1a1a1a;">
+{body_html}
+</body>
+</html>"""
+    send_email(TEST_EMAIL, subject, html_body)
 
 
 def notify_new_wording(city: str, tip: str, decision: str, how: str) -> None:
     """Tell the owner the ACCC used wording the rules didn't recognise."""
-    if not TEST_EMAIL:
-        return
-    html_body = f"""
-<!DOCTYPE html>
-<html>
-<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 520px; margin: 0 auto; padding: 24px; color: #1a1a1a;">
+    ai_says_buy = how.startswith("AI: BUY")
+    if ai_says_buy:
+        action = ("<strong>The AI thinks this means BUY, but no alerts were sent.</strong> "
+                  "If it's right, change <code>UNCONFIRMED_BUY</code> to <code>BUY</code> for this wording in "
+                  "<code>data/wordings.json</code> on GitHub, and the next check will alert subscribers.")
+        subject = f"🆕 Confirm needed: new ACCC wording for {city.capitalize()} may mean BUY"
+    else:
+        action = (f"Treated as <strong>{decision}</strong>. The answer is saved in <code>data/wordings.json</code>; "
+                  "edit it there if it's wrong.")
+        subject = f"🆕 New ACCC wording for {city.capitalize()}: treated as {decision}"
+    notify_owner(subject, f"""
     <h2 style="margin: 0 0 16px 0;">New ACCC wording for {city.capitalize()}</h2>
-    <p style="font-size: 16px; line-height: 1.6; margin: 0 0 16px 0; padding: 12px 16px; background: #f5f5f5; border-radius: 6px;">
-        “{escape(tip)}”
-    </p>
-    <p style="font-size: 16px; line-height: 1.6; margin: 0 0 8px 0;">
-        Treated as <strong>{decision}</strong>.<br>{escape(how)}
-    </p>
-    <p style="font-size: 14px; color: #666; line-height: 1.6; margin: 16px 0 0 0;">
-        The keyword rules didn't recognise this, so the free AI model decided and the answer is
-        saved in data/wordings.json. If it's wrong, edit that file (or the rules in main.py).
-    </p>
-</body>
-</html>
-"""
-    send_email(TEST_EMAIL, f"🆕 New ACCC wording for {city.capitalize()}: treated as {decision}", html_body)
+    <p style="font-size: 16px; line-height: 1.6; margin: 0 0 16px 0; padding: 12px 16px; background: #f5f5f5; border-radius: 6px;">“{escape(tip)}”</p>
+    <p style="font-size: 16px; line-height: 1.6; margin: 0 0 8px 0;">{action}</p>
+    <p style="font-size: 14px; color: #666; line-height: 1.6; margin: 16px 0 0 0;">How it was decided: {escape(how)}</p>""")
 
 
 def load_state() -> dict:
@@ -330,7 +341,7 @@ def mask_email(email: str) -> str:
     return f"{local[:1]}***@{domain}"
 
 
-def send_email(to_email: str, subject: str, html_body: str, headers: dict | None = None) -> bool:
+def send_email(to_email: str, subject: str, html_body: str, headers: dict | None = None, text_body: str | None = None) -> bool:
     """Send an email via Resend API."""
     if not RESEND_API_KEY:
         print(f"[DRY RUN] Would send to {mask_email(to_email)}: {subject}")
@@ -347,6 +358,7 @@ def send_email(to_email: str, subject: str, html_body: str, headers: dict | None
             "to": [to_email],
             "subject": subject,
             "html": html_body,
+            **({"text": text_body} if text_body else {}),
             "headers": headers or {}
         },
         timeout=30
@@ -360,9 +372,11 @@ def send_email(to_email: str, subject: str, html_body: str, headers: dict | None
         return False
 
 
-def send_buy_alert(email: str, city: str, tip_text: str) -> bool:
-    """Send the BUY alert email."""
-    city_display = city.capitalize()
+FORWARD_URL = "https://fillyatank.app/?ref=fwd"
+
+
+def send_alert(email: str, city: str, subject: str, headline: str, details: list[str]) -> bool:
+    """Send a fill-up alert (HTML and plain text) with one-click unsubscribe."""
     unsubscribe_token = generate_token(email, city)
     unsubscribe_url = f"{SITE_URL}/unsubscribe.html?email={quote(email)}&city={city}&token={unsubscribe_token}"
     one_click_url = f"{WORKER_URL}/?action=unsubscribe&email={quote(email)}&city={city}&token={unsubscribe_token}"
@@ -371,41 +385,56 @@ def send_buy_alert(email: str, city: str, tip_text: str) -> bool:
         "List-Unsubscribe": f"<{one_click_url}>",
         "List-Unsubscribe-Post": "List-Unsubscribe=One-Click"
     }
-    
-    subject = f"⛽ {city_display} petrol prices are at the bottom"
-    if SIMULATE_BUY_CITY:
+    if SIMULATE_BUY_CITY or os.environ.get("SIMULATE_PERTH_JUMP", "").lower() == "true":
         subject = f"[TEST] {subject}"
-    
-    html_body = f"""
-<!DOCTYPE html>
+
+    detail_html = "".join(
+        f'<p style="font-size: 15px; line-height: 1.6; color: #444; margin: 0 0 10px 0;">{escape(line)}</p>'
+        for line in details
+    )
+    html_body = f"""<!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px; color: #1a1a1a;">
-    <p style="font-size: 18px; line-height: 1.6; margin: 0 0 24px 0;">
-        Prices have hit the low point of the cycle.
+    <p style="font-size: 18px; line-height: 1.6; margin: 0 0 20px 0;">{escape(headline)}</p>
+    <p style="font-size: 26px; font-weight: 700; margin: 0 0 20px 0; color: #1e7d46;">Time to fill ya tank!</p>
+    {detail_html}
+    <p style="font-size: 15px; line-height: 1.6; margin: 20px 0 0 0;">
+        Know someone who drives? <a href="{FORWARD_URL}" style="color: #1e7d46;">Forward this to a mate</a>. It's free.
     </p>
-    
-    <p style="font-size: 24px; font-weight: 600; margin: 0 0 24px 0; color: #16a34a;">
-        Time to fill ya tank!
-    </p>
-    
-    <hr style="border: none; border-top: 1px solid #e5e5e5; margin: 32px 0;">
-    
+    <hr style="border: none; border-top: 1px solid #e5e5e5; margin: 28px 0;">
     <p style="font-size: 13px; color: #666; margin: 0 0 8px 0;">
+        You're getting this because you signed up for {city.capitalize()} alerts at fillyatank.app.
         <a href="{unsubscribe_url}" style="color: #666;">Unsubscribe</a>
     </p>
-    
-    <p style="font-size: 13px; color: #999; margin: 0; font-style: italic;">
-        Inspired by "How They Get You" by Chris Kohler
-    </p>
+    <p style="font-size: 13px; color: #999; margin: 0; font-style: italic;">Inspired by "How They Get You" by Chris Kohler</p>
 </body>
-</html>
-"""
-    
-    return send_email(email, subject, html_body, list_headers)
+</html>"""
+    text_body = "\n\n".join([
+        headline,
+        "Time to fill ya tank!",
+        *details,
+        f"Know someone who drives? Forward this to a mate: {FORWARD_URL}",
+        f"You're getting this because you signed up for {city.capitalize()} alerts at fillyatank.app.\nUnsubscribe: {unsubscribe_url}",
+    ])
+    return send_email(email, subject, html_body, list_headers, text_body)
+
+
+def send_buy_alert(email: str, city: str, tip_text: str) -> bool:
+    """ACCC-based alert: the buying tip says prices are at the bottom."""
+    details = []
+    if tip_text:
+        details.append(f"The ACCC's latest buying tip for {city.capitalize()}: \"{normalise_tip(tip_text)}\"")
+    details.append("Prices usually climb again soon after the bottom, so the sooner the better.")
+    return send_alert(
+        email, city,
+        subject=f"⛽ {city.capitalize()} petrol prices are at the bottom",
+        headline="Prices have hit the low point of the cycle.",
+        details=details,
+    )
 
 
 def send_stats_report(days: int = 7) -> bool:
@@ -434,6 +463,11 @@ def send_stats_report(days: int = 7) -> bool:
         + "</tr>"
         for day in stats["daily"]
     )
+    refs = stats.get("refs") or {}
+    ref_rows = "".join(
+        f"<tr><td {cell.replace('right', 'left')}>{escape(ref)}</td><td {cell}>{count}</td></tr>"
+        for ref, count in sorted(refs.items(), key=lambda item: -item[1])
+    ) or f"<tr><td {cell.replace('right', 'left')} colspan='2'>No tagged visits yet (links with ?ref=...)</td></tr>"
     city_rows = "".join(
         f"<tr><td {cell.replace('right', 'left')}>{city.capitalize()}</td><td {cell}>{count}</td></tr>"
         for city, count in stats["subscribersByCity"].items()
@@ -454,6 +488,10 @@ def send_stats_report(days: int = 7) -> bool:
     <table style="border-collapse: collapse; font-size: 14px; margin: 0 0 24px 0;">
         <tr><th {head.replace('right', 'left')}>Date</th><th {head}>Views</th><th {head}>Sign-ups</th><th {head}>Confirmed</th><th {head}>Unsubscribed</th></tr>
         {rows}
+    </table>
+    <table style="border-collapse: collapse; font-size: 14px; margin: 0 0 24px 0;">
+        <tr><th {head.replace('right', 'left')}>Visits by source</th><th {head}>Views</th></tr>
+        {ref_rows}
     </table>
     <table style="border-collapse: collapse; font-size: 14px;">
         <tr><th {head.replace('right', 'left')}>City</th><th {head}>Subscribers</th></tr>
@@ -511,6 +549,18 @@ def main():
         # Fall back to simpler extraction
         tips = extract_buying_tips(html)
     
+    # A broken scrape must not quietly turn every city into WAIT
+    empty = [city for city in CITIES if not tips.get(city, "").strip()]
+    if len(empty) >= 2:
+        print(f"Error: no buying tip found for {', '.join(empty)}. The ACCC page may have changed.")
+        if not SIMULATE_BUY_CITY:
+            notify_owner("⚠️ FillYaTank: couldn't read the ACCC buying tips", f"""
+    <h2 style="margin: 0 0 16px 0;">The ACCC page couldn't be read</h2>
+    <p style="font-size: 16px; line-height: 1.6;">No buying tip was found for: <strong>{', '.join(c.capitalize() for c in empty)}</strong>.
+    The page layout may have changed. State wasn't updated and no alerts were sent.</p>
+    <p style="font-size: 14px; color: #666; line-height: 1.6;">Check the latest "Fuel Price Check" run on GitHub and the ACCC page.</p>""")
+        return 1
+    
     # Load previous state
     previous_state = load_state()
     current_state = {}
@@ -566,6 +616,9 @@ def main():
         subscribers = load_subscribers()
         
         for city in transitions:
+            if city == "perth" and not SIMULATE_BUY_CITY:
+                print("\nPerth: skipped here; Perth alerts come from FuelWatch's next-day prices (perth_alert.py)")
+                continue
             city_subs = subscribers.get(city, [])
             tip = tips.get(city, "")
             

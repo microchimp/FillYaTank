@@ -51,6 +51,21 @@ def run(cases: dict, label: str) -> int:
     return failures
 
 
+def run_extraction_fixture() -> int:
+    """The scraper must still find all five tips in a saved copy of the ACCC page."""
+    from pathlib import Path
+    html = (Path(__file__).parent / "tests" / "fixtures" / "accc_2026-09-17.html").read_text()
+    tips = main.extract_buying_tips_v2(html)
+    missing = [city for city in main.CITIES if not tips.get(city)]
+    unclear = [city for city in main.CITIES if tips.get(city) and main.classify_tip(tips[city])[0] == "UNCLEAR"]
+    for city in missing:
+        print(f"FAIL [extraction] no tip found for {city}")
+    for city in unclear:
+        print(f"FAIL [extraction] tip for {city} not recognised: {tips[city]!r}")
+    print(f"extraction fixture: {5 - len(missing) - len(unclear)}/5 passed")
+    return len(missing) + len(unclear)
+
+
 if __name__ == "__main__":
-    failures = run(ACCC_WORDINGS, "ACCC wordings") + run(REWORDINGS, "rewordings")
+    failures = run(ACCC_WORDINGS, "ACCC wordings") + run(REWORDINGS, "rewordings") + run_extraction_fixture()
     raise SystemExit(1 if failures else 0)

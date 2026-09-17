@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /confirm.html
+Disallow: /unsubscribe.html
+
+Sitemap: https://fillyatank.app/sitemap.xml
