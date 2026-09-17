@@ -3,7 +3,7 @@ main = "src/index.js"
 compatibility_date = "2026-09-01"
 preview_urls = false
 # Served at api.fillyatank.app (keeps personal account names out of URLs)
-workers_dev = true  # temporary: switch off once the site uses api.fillyatank.app
+workers_dev = false
 routes = [
   { pattern = "api.fillyatank.app", custom_domain = true }
 ]

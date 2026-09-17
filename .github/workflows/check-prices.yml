@@ -72,6 +72,6 @@ jobs:
           date -u +%Y-%m-%d > data/last_run.txt
           git add data/state.json data/last_run.txt data/wordings.json
           git diff --staged --quiet && exit 0
-          git commit -m "Update price state [skip ci]"
+          git commit -m "Update price state"
           git pull --rebase
           git push

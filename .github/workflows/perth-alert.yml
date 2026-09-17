@@ -49,6 +49,6 @@ jobs:
           git config --local user.name "github-actions[bot]"
           git add data/perth_last_run.txt data/perth_alert.json 2>/dev/null || git add data/perth_last_run.txt
           git diff --staged --quiet && exit 0
-          git commit -m "Update Perth check [skip ci]"
+          git commit -m "Update Perth check"
           git pull --rebase
           git push
