@@ -13,6 +13,7 @@ import re
 import hashlib
 import base64
 from datetime import datetime
+from html import unescape
 from pathlib import Path
 
 import requests
@@ -30,10 +31,8 @@ SECRET_KEY = os.environ.get("SECRET_KEY", "change-this-in-production")
 
 def fetch_accc_page() -> str:
     """Fetch the ACCC petrol price cycles page."""
-    headers = {
-        "User-Agent": "FuelPriceAlert/1.0 (Consumer savings tool)"
-    }
-    response = requests.get(ACCC_URL, headers=headers, timeout=30)
+    # No custom User-Agent: the ACCC's CDN rejects unrecognised agents with 403
+    response = requests.get(ACCC_URL, timeout=30)
     response.raise_for_status()
     return response.text
 
@@ -100,6 +99,7 @@ def extract_buying_tips_v2(html: str) -> dict[str, str]:
             # Clean up the extracted text
             tip_text = match.group(1)
             tip_text = re.sub(r"<[^>]+>", " ", tip_text)  # Remove HTML tags
+            tip_text = unescape(tip_text)  # Decode entities like &nbsp;
             tip_text = re.sub(r"\s+", " ", tip_text)  # Normalize whitespace
             tip_text = tip_text.strip()
             tips[city] = tip_text
