@@ -389,7 +389,7 @@ def send_buy_alert(email: str, city: str, tip_text: str) -> bool:
     </p>
     
     <p style="font-size: 24px; font-weight: 600; margin: 0 0 24px 0; color: #16a34a;">
-        Fill up within 24 hours.
+        Time to fill ya tank!
     </p>
     
     <hr style="border: none; border-top: 1px solid #e5e5e5; margin: 32px 0;">

@@ -638,20 +638,12 @@ p {
 
 /* Status */
 
-.status-layout {
-  display: grid;
-  gap: 20px;
-  max-width: 1000px;
-  margin: 0 auto;
-}
-
 .status-card {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
   overflow: hidden;
-  width: 100%;
   max-width: 600px;
   margin: 0 auto;
 }
@@ -662,41 +654,24 @@ p {
   padding: 0;
 }
 
-.status-list li {
-  border-bottom: 1px solid var(--border);
-}
-
-.status-list li:last-child {
-  border-bottom: 0;
-}
-
 .status-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  width: 100%;
   padding: 16px 24px;
-  font: inherit;
-  color: inherit;
-  text-align: left;
-  background: transparent;
-  border: 0;
-  cursor: pointer;
-  transition: background-color 0.15s;
+  border-bottom: 1px solid var(--border);
 }
 
-.status-row:hover {
-  background: #f6f8f5;
+.status-row:last-child {
+  border-bottom: 0;
 }
 
-.status-row.selected {
-  background: #eef3ec;
-  box-shadow: inset 4px 0 0 var(--accent);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .status-row { transition: none; }
+.status-link {
+  text-align: center;
+  margin-top: 18px;
+  font-size: 16px;
+  font-weight: 600;
 }
 
 .city-name {
@@ -753,107 +728,6 @@ p {
   color: var(--text-muted);
   background: var(--surface-muted);
   padding: 12px 24px;
-}
-
-/* City price chart */
-
-.chart-panel {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  padding: 20px 20px 16px;
-  width: 100%;
-  max-width: 600px;
-  margin: 0 auto;
-}
-
-.chart-panel-head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 4px 12px;
-  margin-bottom: 8px;
-}
-
-.chart-panel-head h3 {
-  font-size: 20px;
-}
-
-.chart-latest {
-  font-size: 15px;
-  font-weight: 650;
-  color: var(--accent-text);
-}
-
-.chart-body svg {
-  display: block;
-  width: 100%;
-  height: auto;
-}
-
-.chart-empty {
-  display: grid;
-  place-items: center;
-  min-height: 220px;
-  text-align: center;
-  color: var(--text-muted);
-  background: var(--bg);
-  border-radius: var(--radius-sm);
-  padding: 24px;
-}
-
-.chart-source {
-  font-size: 13px;
-  color: var(--text-muted);
-  margin-top: 8px;
-}
-
-.chart-source:empty {
-  display: none;
-}
-
-.pc-grid {
-  stroke: var(--border);
-  stroke-width: 1;
-}
-
-.pc-axis {
-  font-family: var(--font);
-  font-size: 14px;
-  fill: var(--text-muted);
-}
-
-.pc-line {
-  fill: none;
-  stroke: var(--accent);
-  stroke-width: 3;
-  stroke-linejoin: round;
-  stroke-linecap: round;
-}
-
-.pc-area {
-  fill: var(--accent);
-  opacity: 0.08;
-}
-
-.pc-dot {
-  fill: var(--accent);
-  stroke: var(--surface);
-  stroke-width: 3;
-}
-
-@media (min-width: 900px) {
-  .status-layout {
-    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
-    align-items: start;
-  }
-
-  .status-card,
-  .chart-panel {
-    max-width: none;
-  }
 }
 
 /* FAQ */
@@ -1202,39 +1076,6 @@ body {
 
 
 /* Status chart hint */
-
-.status-layout {
-  position: relative;
-}
-
-.chart-hint {
-  display: block;
-  margin: -14px 0 4px 8px;
-  transform: rotate(-2deg);
-  font-size: 24px;
-}
-
-.hint-hover {
-  display: none;
-}
-
-@media (hover: hover) and (min-width: 900px) {
-  .chart-hint {
-    position: absolute;
-    top: -30px;
-    left: 12px;
-    margin: 0;
-    transform: rotate(-3deg);
-  }
-
-  .hint-hover {
-    display: inline;
-  }
-
-  .hint-touch {
-    display: none;
-  }
-}
 
 /* Closing call to action */
 
