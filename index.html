@@ -9,7 +9,7 @@
     <meta name="theme-color" content="#fafaf7">
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
     <link rel="preload" href="/fonts/caveat.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="stylesheet" href="/styles.css?v=10">
+    <link rel="stylesheet" href="/styles.css?v=11">
 
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="FillYaTank">
@@ -81,11 +81,6 @@
                         <button class="button" type="submit" id="submitBtn">Email me when to fill up</button>
                         <div class="form-message" id="formMessage" role="status" aria-live="polite"></div>
                     </form>
-
-                    <ul class="promises">
-                        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M5 12l5 5L19 7"/></svg>Free, no ads</li>
-                        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M5 12l5 5L19 7"/></svg>One email per cycle</li>
-                    </ul>
                 </div>
 
                 <div>
@@ -107,7 +102,7 @@
                             <span class="email-footer">Unsubscribe</span>
                         </div>
                     </div>
-                    <p class="sticky-note"><strong>No newsletters. No marketing.</strong><br>Just this, when it's time.</p>
+                    <p class="sticky-note"><strong>No ads. No newsletters.</strong><br>Just this, when it's time.</p>
                 </div>
             </div>
         </section>
@@ -167,8 +162,6 @@
                         <li><span class="num good" aria-hidden="true">3</span><div><strong>At the bottom, we email you</strong><span>When the ACCC says prices are around their lowest point, you get one email: fill up now, before prices climb again.</span></div></li>
                     </ol>
                 </div>
-
-                <p class="cycle-lengths">Typical cycle length, according to the ACCC: Sydney about 5 weeks · Melbourne about 6 weeks · Brisbane about 6½ weeks · Adelaide about 2½ weeks · Perth about 1 week.</p>
             </div>
         </section>
 
@@ -196,10 +189,10 @@
         <section class="section tone-white" id="today" aria-labelledby="today-title">
             <div class="wrap">
                 <h2 id="today-title">Where each city is today</h2>
-                <p class="section-intro">Based on the ACCC's latest buying tip. Hover over or tap a city to see its average petrol price over the last 45 days.</p>
+                <p class="section-intro">Based on the ACCC's latest buying tips, with each city's average price over the last 45 days.</p>
 
                 <div class="status-layout">
-                    <span class="margin-note chart-hint" aria-hidden="true">hover over a city ↓</span>
+                    <span class="margin-note chart-hint" aria-hidden="true"><span class="hint-hover">hover over a city ↓</span><span class="hint-touch">tap a city to see its prices ↓</span></span>
                     <div class="status-card">
                         <ul class="status-list">
                         <li><button class="status-row" type="button" data-city="sydney" aria-controls="cityChart"><span class="city-name">Sydney</span><span class="pill" data-city="sydney">Checking…</span></button></li>
@@ -209,7 +202,6 @@
                         <li><button class="status-row" type="button" data-city="perth" aria-controls="cityChart"><span class="city-name">Perth</span><span class="pill" data-city="perth">Checking…</span></button></li>
                         </ul>
                         <div class="status-footer">
-                            <span><strong>Fill up now</strong> = at the bottom · <strong>Hold off</strong> = not yet</span>
                             <span id="lastChecked"></span>
                         </div>
                     </div>
@@ -236,7 +228,7 @@
                     </details>
                     <details>
                         <summary>How often will you email me?</summary>
-                        <p>Only when your city reaches the bottom of its price cycle, roughly once per cycle: every few weeks in the eastern cities and about weekly in Perth. Nothing else.</p>
+                        <p>Only when your city reaches the bottom of its price cycle, so about once per cycle. According to the ACCC, a typical cycle lasts about 5 weeks in Sydney, 6 in Melbourne, 6½ in Brisbane, 2½ in Adelaide and 1 week in Perth. Nothing else.</p>
                     </details>
                     <details>
                         <summary>Why is there a price cycle at all?</summary>
@@ -489,7 +481,7 @@
             </svg>`;
 
             latest.textContent = `${values[values.length - 1].toFixed(1)}¢/L on ${formatDay(days[days.length - 1][0], { weekday: 'short', day: 'numeric', month: 'short' })}`;
-            source.textContent = `Average regular unleaded price across ${name}, per day. Source: ${cityData.source}.`;
+            source.textContent = `Daily average unleaded price · ${cityData.source}`;
         }
 
         async function loadPrices() {

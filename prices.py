@@ -57,7 +57,7 @@ def perth_daily_averages(start: date, end: date) -> list[list]:
 SOURCES = {
     "perth": {
         "build": perth_daily_averages,
-        "source": "FuelWatch, Government of Western Australia (CC BY 4.0)",
+        "source": "FuelWatch, WA Government (CC BY 4.0)",
     },
 }
 

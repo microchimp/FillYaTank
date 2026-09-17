@@ -3,7 +3,7 @@
  "unit": "cents per litre",
  "cities": {
   "perth": {
-   "source": "FuelWatch, Government of Western Australia (CC BY 4.0)",
+   "source": "FuelWatch, WA Government (CC BY 4.0)",
    "days": [
     [
      "2026-08-03",

@@ -314,30 +314,6 @@ p {
   overflow: hidden;
 }
 
-.promises {
-  list-style: none;
-  padding: 0;
-  margin: 18px 0 0;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px 20px;
-  font-size: 15px;
-  color: var(--text-muted);
-}
-
-.promises li {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.promises svg {
-  width: 18px;
-  height: 18px;
-  color: var(--accent);
-  flex: none;
-}
-
 /* Email preview */
 
 .preview-label {
@@ -497,8 +473,10 @@ p {
 
 /* Cards sitting on white sections need a touch more separation */
 
-.tone-white .cycle-chart {
-  background: var(--bg);
+.cycle-chart,
+.steps li {
+  background: var(--surface);
+  box-shadow: var(--shadow);
 }
 
 /* Cycle chart */
@@ -549,16 +527,16 @@ p {
 }
 
 .chart-badge {
-  fill: var(--surface-muted);
-  stroke: #c9cdc5;
-  stroke-width: 1.5;
+  fill: var(--surface);
+  stroke: var(--accent);
+  stroke-width: 2.5;
 }
 
 .chart-badge-text {
   font-family: var(--font);
   font-size: 20px;
   font-weight: 700;
-  fill: var(--text);
+  fill: var(--accent-text);
 }
 
 .chart-callout {
@@ -589,7 +567,7 @@ p {
 
 .cycle-points li {
   display: grid;
-  grid-template-columns: 36px 1fr;
+  grid-template-columns: 40px 1fr;
   gap: 12px;
   align-items: start;
 }
@@ -615,14 +593,6 @@ p {
 
 .cycle-points span {
   color: var(--text-muted);
-}
-
-.cycle-lengths {
-  font-size: 15px;
-  color: var(--text-muted);
-  max-width: 46em;
-  margin: 28px auto 0;
-  text-align: center;
 }
 
 /* Steps */
@@ -777,7 +747,7 @@ p {
 .status-footer {
   display: flex;
   flex-wrap: wrap;
-  justify-content: space-between;
+  justify-content: center;
   gap: 4px 16px;
   font-size: 14px;
   color: var(--text-muted);
@@ -1210,24 +1180,26 @@ body {
   font-size: 24px;
 }
 
-.cycle-points .num {
-  font-family: var(--hand);
-  font-size: 24px;
-}
-
+.cycle-points .num,
 .steps li::before {
   font-family: var(--hand);
-  font-size: 28px;
-  width: 42px;
-  height: 42px;
+  font-size: 26px;
+  font-weight: 700;
+  width: 40px;
+  height: 40px;
+  color: var(--accent-text);
   background: transparent;
   border: 2.5px solid var(--accent);
   border-radius: 55% 45% 50% 50% / 50% 55% 45% 50%;
 }
 
-.steps li:nth-child(1) { transform: rotate(-0.6deg); }
-.steps li:nth-child(2) { transform: rotate(0.5deg); }
-.steps li:nth-child(3) { transform: rotate(-0.3deg); }
+.cycle-points .num.good {
+  color: #fff;
+  background: var(--accent);
+}
+
+
+
 
 /* Status chart hint */
 
@@ -1236,16 +1208,31 @@ body {
 }
 
 .chart-hint {
+  display: block;
+  margin: -14px 0 4px 8px;
+  transform: rotate(-2deg);
+  font-size: 24px;
+}
+
+.hint-hover {
   display: none;
 }
 
 @media (hover: hover) and (min-width: 900px) {
   .chart-hint {
-    display: block;
     position: absolute;
     top: -30px;
     left: 12px;
+    margin: 0;
     transform: rotate(-3deg);
+  }
+
+  .hint-hover {
+    display: inline;
+  }
+
+  .hint-touch {
+    display: none;
   }
 }
 
