@@ -84,6 +84,7 @@ def run() -> int:
 
     if SIMULATE:
         change = max(change, 15.0)
+        tomorrow_avg = today_avg + change
         print("TEST MODE: forcing a jump and emailing TEST_EMAIL only")
 
     state = load_alert_state()
