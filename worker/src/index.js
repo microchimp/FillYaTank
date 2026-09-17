@@ -2,7 +2,7 @@
  * FillYaTank Signup Worker
  *
  * POST /                                        signup form -> sends confirmation email
- * GET  /?action=confirm&email&city&ts&token      adds subscriber (link valid 7 days)
+ * GET  /?action=confirm&email&city&ts&token      adds subscriber (link valid 1 hour)
  * GET  /?action=unsubscribe&email&city&token     removes subscriber
  * POST /?action=unsubscribe&email&city&token     RFC 8058 one-click unsubscribe
  * GET  /?action=subscribers (Bearer ADMIN_TOKEN) -> {city: [emails]} for main.py
@@ -14,7 +14,7 @@ const ALLOWED_ORIGINS = [
   "https://fillyatank.pages.dev",
   "https://microchimp.github.io"
 ];
-const CONFIRM_LINK_MAX_AGE = 7 * 24 * 60 * 60; // seconds
+const CONFIRM_LINK_MAX_AGE = 60 * 60; // seconds
 const CONFIRM_RESEND_COOLDOWN = 600; // seconds between confirmation emails per address
 
 // HMAC-SHA256(SECRET_KEY, "email|city|action"), first 16 bytes, base64url.
@@ -96,7 +96,7 @@ async function sendConfirmationEmail(env, email, city) {
   </p>
   
   <p style="font-size: 14px; color: #666; line-height: 1.6; margin: 0 0 24px 0;">
-    You'll only hear from us when prices hit bottom. That's it.
+    This link expires in 1 hour. You'll only hear from us when prices hit bottom. That's it.
   </p>
   
   <hr style="border: none; border-top: 1px solid #e5e5e5; margin: 32px 0;">
