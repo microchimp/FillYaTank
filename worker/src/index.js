@@ -8,6 +8,7 @@
  * GET  /?action=subscribers (Bearer ADMIN_TOKEN) -> {city: [emails]} for main.py
  * POST /?action=view                             anonymous homepage view count
  * GET  /?action=stats&days=N (Bearer ADMIN_TOKEN) -> daily counts + subscribers per city
+ * POST /?action=classify {text} (Bearer ADMIN_TOKEN) -> {phase: BUY|WAIT|UNSURE} via Workers AI
  *
  * Stats are aggregate daily counters only: no cookies, IPs or identifiers.
  */
@@ -19,6 +20,19 @@ const ALLOWED_ORIGINS = [
 ];
 const CONFIRM_LINK_MAX_AGE = 60 * 60; // seconds
 const CONFIRM_RESEND_COOLDOWN = 600; // seconds between confirmation emails per address
+const CLASSIFY_MODEL = "@cf/meta/llama-3.1-8b-instruct-fp8";
+const CLASSIFY_PROMPT = `You classify Australian ACCC petrol "buying tips" for one city.
+Answer with exactly one word:
+BUY - the tip says prices are at or near the bottom (lowest point) of the price cycle, so now is a good time to buy.
+WAIT - the tip says prices are rising, falling, high, or otherwise not yet at the bottom.
+UNSURE - the tip does not clearly say either.
+
+Examples:
+"prices appear to be around the lowest point of the cycle now is a good time for motorists to buy petrol." -> BUY
+"prices are decreasing and may decrease further motorists looking to buy petrol can shop around for the lowest prices." -> WAIT
+"while the price cycle is around a high point, we encourage motorists to use fuel price apps" -> WAIT
+"prices have increased if motorists shop around, they may find some retailers who have not yet increased prices." -> WAIT`;
+
 const STAT_EVENTS = ["views", "signups", "confirmations", "unsubscribes"];
 const STATS_RETENTION = 400 * 24 * 60 * 60; // seconds
 
@@ -237,6 +251,27 @@ async function handleListSubscribers(request, env) {
   return json(request, await loadSubscribers(env));
 }
 
+async function handleClassify(request, env) {
+  if (!isAdmin(request, env)) return json(request, { error: "Unauthorized" }, 401);
+
+  const { text } = await request.json();
+  if (typeof text !== "string" || !text.trim() || text.length > 1000) {
+    return json(request, { error: "Invalid text" }, 400);
+  }
+
+  const result = await env.AI.run(CLASSIFY_MODEL, {
+    messages: [
+      { role: "system", content: CLASSIFY_PROMPT },
+      { role: "user", content: `Tip: "${text.trim()}"\nAnswer:` }
+    ],
+    max_tokens: 5,
+    temperature: 0
+  });
+
+  const word = String(result.response || "").trim().toUpperCase().match(/^(BUY|WAIT|UNSURE)\b/);
+  return json(request, { phase: word ? word[1] : "UNSURE", model: CLASSIFY_MODEL, raw: String(result.response || "").slice(0, 50) });
+}
+
 async function handleStats(request, url, env) {
   if (!isAdmin(request, env)) return json(request, { error: "Unauthorized" }, 401);
 
@@ -269,6 +304,7 @@ export default {
       if (request.method === "POST") {
         // One-click unsubscribe from the List-Unsubscribe email header
         if (action === "unsubscribe") return await handleTokenAction(request, url, env, ctx, action);
+        if (action === "classify") return await handleClassify(request, env);
         if (action === "view") {
           // Only count views from the real site, not arbitrary POSTs
           if (ALLOWED_ORIGINS.includes(request.headers.get("Origin"))) ctx.waitUntil(countEvent(env, "views"));

@@ -13,6 +13,11 @@ on:
         default: ''
         type: choice
         options: ['', sydney, melbourne, brisbane, adelaide, perth]
+      classify_text:
+        description: 'DEBUG: classify this buying-tip text (rules, then free AI if unclear) and print the result. No emails, no commits.'
+        required: false
+        default: ''
+        type: string
       send_stats_report:
         description: 'Only email the owner a stats summary (views, sign-ups, subscribers) — no price check.'
         required: false
@@ -40,6 +45,9 @@ jobs:
         run: |
           pip install -r requirements.txt
       
+      - name: Test classifier rules
+        run: python test_parser.py
+      
       - name: Run price check
         env:
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
@@ -50,17 +58,18 @@ jobs:
           SIMULATE_BUY_CITY: ${{ inputs.simulate_buy_city }}
           TEST_EMAIL: ${{ secrets.TEST_EMAIL }}
           STATS_REPORT: ${{ inputs.send_stats_report }}
+          CLASSIFY_TEXT: ${{ inputs.classify_text }}
         run: |
           python main.py
       
       - name: Commit state changes
-        if: ${{ !inputs.simulate_buy_city && !inputs.send_stats_report }}
+        if: ${{ !inputs.simulate_buy_city && !inputs.send_stats_report && !inputs.classify_text }}
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
           # Record every run so the repo always has recent activity; GitHub
           # disables scheduled workflows after 60 days without any.
           date -u +%Y-%m-%d > data/last_run.txt
-          git add data/state.json data/last_run.txt
+          git add data/state.json data/last_run.txt data/wordings.json
           git diff --staged --quiet || git commit -m "Update price state [skip ci]"
           git push

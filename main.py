@@ -14,7 +14,7 @@ import hashlib
 import hmac
 import base64
 from datetime import datetime
-from html import unescape
+from html import escape, unescape
 from pathlib import Path
 from urllib.parse import quote
 
@@ -40,6 +40,9 @@ TEST_EMAIL = os.environ.get("TEST_EMAIL", "").lower().strip()
 # Owner stats summary: sent on Monday scheduled runs, or on demand from the workflow.
 # Goes to the TEST_EMAIL secret (the owner's address).
 STATS_REPORT = os.environ.get("STATS_REPORT", "").lower() == "true"
+
+# Debug mode: classify this text (rules, then AI if unclear) and exit. No side effects.
+CLASSIFY_TEXT = os.environ.get("CLASSIFY_TEXT", "").strip()
 
 
 def fetch_accc_page() -> str:
@@ -122,45 +125,156 @@ def extract_buying_tips_v2(html: str) -> dict[str, str]:
     return tips
 
 
+# ACCC boilerplate that contains misleading words ("lowest prices", "buy petrol",
+# "not yet increased") in otherwise-WAIT tips. Removed before matching.
+TIP_BOILERPLATE = [
+    r"shop around,? for (the )?(lowest prices|lower[- ]priced retailers)",
+    r"find lower[- ]priced retailers",
+    r"retailers (who|that) have not yet increased (their )?prices",
+    r"motorists looking to buy petrol",
+]
+
+# Prices at the bottom of the cycle
+BUY_PATTERNS = [
+    r"\b(lowest|low|bottom)\s+point\b",
+    r"\b(around|at|near)\s+(or near\s+)?(the|its|their)\s+(lowest|bottom)\b",
+    r"\bbottom of the (price )?cycle\b",
+    r"\bbottomed\b",
+    r"\bgood time (for motorists )?to (buy|fill)",
+    r"\bnow is a good time\b",
+]
+
+# Prices moving, or at the top of the cycle
+WAIT_PATTERNS = [
+    r"\bincreas(e|es|ed|ing)\b",
+    r"\bdecreas(e|es|ed|ing)\b",
+    r"\b(rise|rises|rising|rose|climb|climbing)\b",
+    r"\b(fall|falls|falling|fell|drop|drops|dropping|dropped)\b",
+    r"\b(high|highest|peak)\b",
+]
+
+NEGATION = r"\b(not|no longer|isn't|aren't|yet to)\b"
+
+
+def normalise_tip(tip_text: str) -> str:
+    return " ".join(unescape(tip_text).replace("\xa0", " ").lower().split())
+
+
+def classify_tip(tip_text: str) -> tuple[str, str]:
+    """
+    Classify a buying tip with keyword rules.
+    
+    Returns (phase, reason) where phase is BUY, WAIT or UNCLEAR. UNCLEAR means
+    the rules can't decide safely: no known signal, or BUY and WAIT/negation
+    signals together (e.g. "near the lowest point but may fall further").
+    """
+    text = normalise_tip(tip_text)
+    if not text:
+        return "UNCLEAR", "empty tip (extraction may have failed)"
+    
+    for pattern in TIP_BOILERPLATE:
+        text = re.sub(pattern, " ", text)
+    
+    buy = [p for p in BUY_PATTERNS if re.search(p, text)]
+    wait = [p for p in WAIT_PATTERNS if re.search(p, text)]
+    negated = re.search(NEGATION, text) is not None
+    
+    if buy and not wait and not negated:
+        return "BUY", "at-bottom wording"
+    if wait and not buy:
+        return "WAIT", "rising, falling or high wording"
+    if buy:
+        return "UNCLEAR", "mixed BUY and WAIT/negation wording"
+    return "UNCLEAR", "no known wording"
+
+
 def classify_phase(tip_text: str) -> str:
+    """Rules-only BUY/WAIT (UNCLEAR counts as WAIT, the safe default)."""
+    phase, _ = classify_tip(tip_text)
+    return "BUY" if phase == "BUY" else "WAIT"
+
+
+def load_wordings() -> dict:
+    """AI decisions for wordings the rules couldn't classify, keyed by normalised text."""
+    wordings_file = DATA_DIR / "wordings.json"
+    if wordings_file.exists():
+        with open(wordings_file) as f:
+            return json.load(f)
+    return {}
+
+
+def save_wordings(wordings: dict) -> None:
+    DATA_DIR.mkdir(exist_ok=True)
+    with open(DATA_DIR / "wordings.json", "w") as f:
+        json.dump(wordings, f, indent=2, sort_keys=True)
+
+
+def ai_classify(tip_text: str) -> str:
+    """Ask the Worker's free Workers AI model: BUY, WAIT or UNSURE."""
+    response = requests.post(
+        f"{WORKER_URL}/?action=classify",
+        headers={"Authorization": f"Bearer {ADMIN_TOKEN}"},
+        json={"text": tip_text[:1000]},
+        timeout=60
+    )
+    response.raise_for_status()
+    return response.json()["phase"]
+
+
+def resolve_phase(city: str, tip: str, wordings: dict) -> tuple[str, str, bool]:
     """
-    Classify the buying tip into BUY or WAIT phase.
-    
-    BUY: Prices at lowest point, good time to buy
-    WAIT: Prices decreasing, increasing, or at high point
+    Rules first; AI only for unclear wording, with each answer cached.
+    Returns (BUY|WAIT, how it was decided, whether this wording is new).
+    Anything uncertain resolves to WAIT, the safe default.
     """
-    text = tip_text.lower()
+    phase, reason = classify_tip(tip)
+    if phase != "UNCLEAR":
+        return phase, f"rules: {reason}", False
     
-    # WAIT signals take priority - check these first
-    # - "decreasing" / "may decrease further" = still falling, wait
-    # - "high point" / "increasing" = not time to buy
-    # - "shop around" = prices variable, not at bottom yet
-    wait_phrases = [
-        "decreasing",
-        "may decrease",
-        "shop around",
-        "high point",
-        "increasing",
-        "around a high"
-    ]
+    key = normalise_tip(tip)
+    if not key:
+        return "WAIT", f"rules: {reason}", False
     
-    if any(phrase in text for phrase in wait_phrases):
-        return "WAIT"
+    if key in wordings:
+        cached = wordings[key]["phase"]
+        return ("BUY" if cached == "BUY" else "WAIT"), f"saved AI answer: {cached}", False
     
-    # BUY signals - prices at the bottom
-    buy_phrases = [
-        "lowest point",
-        "good time to buy",
-        "now is a good time",
-        "around the lowest",
-        "at the lowest"
-    ]
+    if not ADMIN_TOKEN:
+        return "WAIT", f"rules: {reason}; AI unavailable (no ADMIN_TOKEN)", False
     
-    if any(phrase in text for phrase in buy_phrases):
-        return "BUY"
+    try:
+        ai_phase = ai_classify(tip)
+    except Exception as e:
+        # Don't cache failures; try again next run
+        return "WAIT", f"rules: {reason}; AI call failed ({e})", False
     
-    # Default to WAIT if unclear
-    return "WAIT"
+    wordings[key] = {"phase": ai_phase, "first_seen": datetime.utcnow().strftime("%Y-%m-%d"), "city": city}
+    return ("BUY" if ai_phase == "BUY" else "WAIT"), f"AI: {ai_phase} ({reason})", True
+
+
+def notify_new_wording(city: str, tip: str, decision: str, how: str) -> None:
+    """Tell the owner the ACCC used wording the rules didn't recognise."""
+    if not TEST_EMAIL:
+        return
+    html_body = f"""
+<!DOCTYPE html>
+<html>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 520px; margin: 0 auto; padding: 24px; color: #1a1a1a;">
+    <h2 style="margin: 0 0 16px 0;">New ACCC wording for {city.capitalize()}</h2>
+    <p style="font-size: 16px; line-height: 1.6; margin: 0 0 16px 0; padding: 12px 16px; background: #f5f5f5; border-radius: 6px;">
+        “{escape(tip)}”
+    </p>
+    <p style="font-size: 16px; line-height: 1.6; margin: 0 0 8px 0;">
+        Treated as <strong>{decision}</strong>.<br>{escape(how)}
+    </p>
+    <p style="font-size: 14px; color: #666; line-height: 1.6; margin: 16px 0 0 0;">
+        The keyword rules didn't recognise this, so the free AI model decided and the answer is
+        saved in data/wordings.json. If it's wrong, edit that file (or the rules in main.py).
+    </p>
+</body>
+</html>
+"""
+    send_email(TEST_EMAIL, f"🆕 New ACCC wording for {city.capitalize()}: treated as {decision}", html_body)
 
 
 def load_state() -> dict:
@@ -369,6 +483,11 @@ def main():
     if STATS_REPORT:
         return 0 if send_stats_report() else 1
     
+    if CLASSIFY_TEXT:
+        phase, how, _ = resolve_phase("test", CLASSIFY_TEXT, {})
+        print(f"Text: {CLASSIFY_TEXT!r}\nDecision: {phase} ({how})")
+        return 0
+    
     if SIMULATE_BUY_CITY:
         if SIMULATE_BUY_CITY not in CITIES or not TEST_EMAIL:
             print("Error: simulation needs a valid city and the TEST_EMAIL secret")
@@ -395,6 +514,7 @@ def main():
     # Load previous state
     previous_state = load_state()
     current_state = {}
+    wordings = load_wordings()
     
     # Classify each city
     print("\nCity Status:")
@@ -405,8 +525,13 @@ def main():
     
     for city in CITIES:
         tip = tips.get(city, "")
-        phase = classify_phase(tip)
+        phase, how, new_wording = resolve_phase(city, tip, wordings)
         current_state[city] = phase
+        if new_wording and not SIMULATE_BUY_CITY:
+            print(f"  🆕 New wording for {city.capitalize()}: {how}")
+            notify_new_wording(city, tip, phase, how)
+        elif not how.startswith("rules: rising") and not how.startswith("rules: at-bottom"):
+            print(f"  ℹ️  {city.capitalize()}: {how}")
         
         prev = previous_state.get(city, "UNKNOWN")
         
@@ -433,6 +558,7 @@ def main():
     # Save current state (never in test mode)
     if not SIMULATE_BUY_CITY:
         save_state(current_state)
+        save_wordings(wordings)
     
     # Send alerts for transitions
     if transitions:

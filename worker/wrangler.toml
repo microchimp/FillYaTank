@@ -13,6 +13,10 @@ FROM_EMAIL = "alerts@fillyatank.app"
 binding = "SUBSCRIBERS"
 id = "05eb6feea11245499e7dc17cc4f3c8bd"
 
+# Workers AI (free daily allocation) for classifying unfamiliar ACCC wording
+[ai]
+binding = "AI"
+
 # Max 5 signup submissions per minute per IP address
 [[ratelimits]]
 name = "SIGNUP_LIMITER"
