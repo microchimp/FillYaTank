@@ -212,7 +212,7 @@ def mask_email(email: str) -> str:
     return f"{local[:1]}***@{domain}"
 
 
-def send_email(to_email: str, subject: str, html_body: str) -> bool:
+def send_email(to_email: str, subject: str, html_body: str, headers: dict | None = None) -> bool:
     """Send an email via Resend API."""
     if not RESEND_API_KEY:
         print(f"[DRY RUN] Would send to {mask_email(to_email)}: {subject}")
@@ -228,13 +228,14 @@ def send_email(to_email: str, subject: str, html_body: str) -> bool:
             "from": FROM_EMAIL,
             "to": [to_email],
             "subject": subject,
-            "html": html_body
+            "html": html_body,
+            "headers": headers or {}
         },
         timeout=30
     )
     
     if response.status_code == 200:
-        print(f"✓ Sent to {mask_email(to_email)}")
+        print(f"✓ Sent to {mask_email(to_email)} from @{FROM_EMAIL.partition('@')[2]} (Resend id {response.json().get('id')})")
         return True
     else:
         print(f"✗ Failed to send to {mask_email(to_email)}: {response.text}")
@@ -246,6 +247,12 @@ def send_buy_alert(email: str, city: str, tip_text: str) -> bool:
     city_display = city.capitalize()
     unsubscribe_token = generate_token(email, city)
     unsubscribe_url = f"{SITE_URL}/unsubscribe.html?email={quote(email)}&city={city}&token={unsubscribe_token}"
+    one_click_url = f"{WORKER_URL}/?action=unsubscribe&email={quote(email)}&city={city}&token={unsubscribe_token}"
+    # RFC 8058 one-click unsubscribe, expected by Gmail and Yahoo
+    list_headers = {
+        "List-Unsubscribe": f"<{one_click_url}>",
+        "List-Unsubscribe-Post": "List-Unsubscribe=One-Click"
+    }
     
     subject = f"⛽ {city_display} petrol prices are at the bottom"
     if SIMULATE_BUY_CITY:
@@ -280,13 +287,17 @@ def send_buy_alert(email: str, city: str, tip_text: str) -> bool:
 </html>
 """
     
-    return send_email(email, subject, html_body)
+    return send_email(email, subject, html_body, list_headers)
 
 
 def main():
     """Main execution flow."""
     print(f"Fuel Price Alert - {datetime.now().isoformat()}")
     print("=" * 50)
+    
+    if RESEND_API_KEY and SECRET_KEY == "change-this-in-production":
+        print("Error: SECRET_KEY is not set; refusing to send emails with forgeable unsubscribe links")
+        return 1
     
     if SIMULATE_BUY_CITY:
         if SIMULATE_BUY_CITY not in CITIES or not TEST_EMAIL:

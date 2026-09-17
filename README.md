@@ -25,7 +25,7 @@ A privacy-first alert system that monitors Australian fuel price cycles and noti
 
 - GitHub account
 - [Resend](https://resend.com) account (free tier: 3,000 emails/month)
-- Optional: [Formspree](https://formspree.io) or similar for form handling
+- [Cloudflare](https://cloudflare.com) account (Pages for the site, Workers + KV for signups)
 
 ### 1. Fork/Clone This Repo
 
@@ -56,25 +56,21 @@ Add these secrets:
 
 Your site will be live at `https://yourusername.github.io/fuel-alert`
 
-### 4. Set Up Form Handling
+### 4. Deploy the Signup Worker
 
-The signup form needs a backend to receive submissions. Options:
+Signups, confirmations and unsubscribes are handled by a Cloudflare Worker in `worker/`, which stores confirmed subscribers in Workers KV (so no email addresses live in this repo).
 
-#### Option A: Formspree (Simplest)
-
-1. Create account at [formspree.io](https://formspree.io)
-2. Create a new form
-3. Copy your form ID
-4. Update `index.html`: replace `YOUR_FORM_ID` in the form action
-
-When you receive form submissions, manually run:
 ```bash
-python signup.py "user@email.com" "sydney"
+cd worker
+npx wrangler login
+npx wrangler kv namespace create SUBSCRIBERS   # paste the id into wrangler.toml
+npx wrangler secret put RESEND_API_KEY
+npx wrangler secret put SECRET_KEY    # same value as the GitHub secret
+npx wrangler secret put ADMIN_TOKEN   # same value as the GitHub secret
+npx wrangler deploy
 ```
 
-#### Option B: Serverless Function (Automated)
-
-Deploy `api/handlers.py` to Vercel, Netlify, or Cloudflare Workers. Update the `API_ENDPOINT` in `confirm.html` and `unsubscribe.html`.
+Add `ADMIN_TOKEN` (and optionally `TEST_EMAIL`) as GitHub secrets too.
 
 ### 5. Test It
 
@@ -85,8 +81,8 @@ pip install -r requirements.txt
 # Run the scraper (dry run without RESEND_API_KEY)
 python main.py
 
-# Test a signup
-python signup.py "test@example.com" "sydney"
+# Simulate a price drop end to end (emails only the TEST_EMAIL secret):
+# Actions → Fuel Price Check → Run workflow → pick a city
 ```
 
 ---
@@ -96,16 +92,17 @@ python signup.py "test@example.com" "sydney"
 ```
 fuel-alert/
 ├── main.py                 # Scraper and email sender
-├── signup.py               # Handles new subscriptions
-├── requirements.txt        # Python dependencies
+├── requirements.txt        # Pinned Python dependencies
 ├── index.html              # Main website with dashboard
 ├── confirm.html            # Subscription confirmation page
 ├── unsubscribe.html        # Unsubscribe page
+├── _headers                # Security headers (Cloudflare Pages)
 ├── data/
 │   ├── state.json          # Current price phase per city
-│   └── subscribers.json    # Email list by city
-├── api/
-│   └── handlers.py         # Serverless function handlers
+│   └── last_run.txt        # Last scheduled run (keeps the schedule active)
+├── worker/
+│   ├── wrangler.toml       # Worker config (KV, rate limit)
+│   └── src/index.js        # Signup, confirm, unsubscribe, subscriber list
 └── .github/
     └── workflows/
         └── check-prices.yml  # Scheduled GitHub Action
@@ -117,7 +114,7 @@ fuel-alert/
 
 **Minimal by design:**
 
-- `subscribers.json`: Email addresses grouped by city
+- Workers KV: email + city for confirmed subscribers (not in this repo)
 - `state.json`: Last known price phase per city (BUY/WAIT)
 
 That's it. No names, no timestamps, no IP addresses, no tracking.

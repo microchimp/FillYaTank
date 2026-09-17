@@ -1,6 +1,7 @@
 name = "fillyatank-signup"
 main = "src/index.js"
 compatibility_date = "2026-09-01"
+preview_urls = false
 
 [vars]
 SITE_URL = "https://fillyatank.app"
@@ -11,6 +12,12 @@ FROM_EMAIL = "alerts@fillyatank.app"
 [[kv_namespaces]]
 binding = "SUBSCRIBERS"
 id = "05eb6feea11245499e7dc17cc4f3c8bd"
+
+# Max 5 signup submissions per minute per IP address
+[[ratelimits]]
+name = "SIGNUP_LIMITER"
+namespace_id = "1001"
+simple = { limit = 5, period = 60 }
 
 # Secrets (set with `npx wrangler secret put <NAME>`, never commit):
 #   RESEND_API_KEY - Resend API key

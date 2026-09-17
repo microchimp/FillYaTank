@@ -136,6 +136,7 @@
             const email = params.get('email');
             const city = params.get('city');
             const token = params.get('token');
+            const ts = params.get('ts') || '';
             
             if (!email || !city || !token) {
                 showError('Missing confirmation parameters.');
@@ -146,7 +147,7 @@
                 // Call serverless function
                 try {
                     const response = await fetch(
-                        `${API_ENDPOINT}?action=confirm&email=${encodeURIComponent(email)}&city=${encodeURIComponent(city)}&token=${encodeURIComponent(token)}`
+                        `${API_ENDPOINT}?action=confirm&email=${encodeURIComponent(email)}&city=${encodeURIComponent(city)}&ts=${encodeURIComponent(ts)}&token=${encodeURIComponent(token)}`
                     );
                     
                     if (response.ok) {
