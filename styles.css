@@ -192,7 +192,6 @@ p {
   border-radius: var(--radius);
   box-shadow: var(--shadow);
   padding: 22px;
-  max-width: 520px;
 }
 
 .field {
@@ -343,7 +342,6 @@ p {
   border-radius: var(--radius);
   box-shadow: var(--shadow);
   overflow: hidden;
-  max-width: 460px;
 }
 
 .email-meta {
@@ -405,7 +403,6 @@ p {
   font-size: 14px;
   color: var(--text-muted);
   margin-top: 12px;
-  max-width: 460px;
 }
 
 /* Sections */
@@ -418,13 +415,15 @@ p {
 .section h2 {
   font-size: clamp(26px, 4.5vw, 34px);
   margin-bottom: 14px;
+  text-align: center;
 }
 
 .section-intro {
   font-size: 18px;
   color: var(--text-muted);
-  max-width: 40em;
-  margin-bottom: 28px;
+  max-width: 36em;
+  margin: 0 auto 36px;
+  text-align: center;
 }
 
 /* Cycle chart */
@@ -546,7 +545,9 @@ p {
 .cycle-lengths {
   font-size: 15px;
   color: var(--text-muted);
-  margin-top: 20px;
+  max-width: 46em;
+  margin: 28px auto 0;
+  text-align: center;
 }
 
 /* Steps */
@@ -598,6 +599,7 @@ p {
   border-radius: var(--radius);
   overflow: hidden;
   max-width: 640px;
+  margin: 0 auto;
 }
 
 .status-list {
@@ -668,7 +670,7 @@ p {
 
 .notice {
   max-width: 640px;
-  margin-top: 16px;
+  margin: 18px auto 0;
   font-size: 15px;
   color: var(--text-muted);
   border-left: 3px solid #d9c38f;
@@ -678,7 +680,8 @@ p {
 /* FAQ */
 
 .faq {
-  max-width: 760px;
+  max-width: 720px;
+  margin: 0 auto;
 }
 
 .faq details {
@@ -744,6 +747,7 @@ p {
   padding: 32px 0 48px;
   font-size: 15px;
   color: var(--text-muted);
+  text-align: center;
 }
 
 .site-footer p + p {
