@@ -476,6 +476,10 @@ p {
 
 /* Cycle chart */
 
+#how h2 {
+  margin-bottom: 36px;
+}
+
 .cycle-grid {
   display: grid;
   gap: 32px;
