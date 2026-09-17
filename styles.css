@@ -134,23 +134,6 @@ p {
   flex: none;
 }
 
-.header-link {
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--text);
-  text-decoration: none;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  padding: 7px 16px;
-  box-shadow: 0 1px 2px rgba(20, 30, 25, 0.06);
-}
-
-.header-link:hover {
-  color: var(--accent-text);
-  border-color: var(--accent);
-}
-
 /* Buy banner */
 
 .buy-banner {
