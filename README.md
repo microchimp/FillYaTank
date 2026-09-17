@@ -162,7 +162,7 @@ The ACCC only provides cycle data for the 5 largest cities. Regional areas don't
 
 ## Privacy
 
-- No analytics or tracking pixels
+- No analytics scripts, cookies or tracking pixels; the homepage only sends an anonymous "page viewed" ping so daily visit totals can be counted
 - No cookies (except essential session cookies if using serverless functions)
 - No third-party scripts
 - Email + city is the only data stored

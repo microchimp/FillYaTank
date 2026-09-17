@@ -13,6 +13,11 @@ on:
         default: ''
         type: choice
         options: ['', sydney, melbourne, brisbane, adelaide, perth]
+      send_stats_report:
+        description: 'Only email the owner a stats summary (views, sign-ups, subscribers) — no price check.'
+        required: false
+        default: false
+        type: boolean
 
 # Least privilege: the job only needs to push data/ commits
 permissions:
@@ -44,11 +49,12 @@ jobs:
           ADMIN_TOKEN: ${{ secrets.ADMIN_TOKEN }}
           SIMULATE_BUY_CITY: ${{ inputs.simulate_buy_city }}
           TEST_EMAIL: ${{ secrets.TEST_EMAIL }}
+          STATS_REPORT: ${{ inputs.send_stats_report }}
         run: |
           python main.py
       
       - name: Commit state changes
-        if: ${{ !inputs.simulate_buy_city }}
+        if: ${{ !inputs.simulate_buy_city && !inputs.send_stats_report }}
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"

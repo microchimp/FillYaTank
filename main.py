@@ -37,6 +37,10 @@ ADMIN_TOKEN = os.environ.get("ADMIN_TOKEN")
 SIMULATE_BUY_CITY = os.environ.get("SIMULATE_BUY_CITY", "").lower().strip()
 TEST_EMAIL = os.environ.get("TEST_EMAIL", "").lower().strip()
 
+# Owner stats summary: sent on Monday scheduled runs, or on demand from the workflow.
+# Goes to the TEST_EMAIL secret (the owner's address).
+STATS_REPORT = os.environ.get("STATS_REPORT", "").lower() == "true"
+
 
 def fetch_accc_page() -> str:
     """Fetch the ACCC petrol price cycles page."""
@@ -290,6 +294,69 @@ def send_buy_alert(email: str, city: str, tip_text: str) -> bool:
     return send_email(email, subject, html_body, list_headers)
 
 
+def send_stats_report(days: int = 7) -> bool:
+    """Email the owner anonymous visit and signup counts from the Worker."""
+    if not (ADMIN_TOKEN and TEST_EMAIL):
+        print("Stats report skipped: ADMIN_TOKEN or TEST_EMAIL not set")
+        return False
+    
+    response = requests.get(
+        f"{WORKER_URL}/?action=stats&days={days}",
+        headers={"Authorization": f"Bearer {ADMIN_TOKEN}"},
+        timeout=30
+    )
+    response.raise_for_status()
+    stats = response.json()
+    
+    events = ["views", "signups", "confirmations", "unsubscribes"]
+    totals = {event: sum(day[event] for day in stats["daily"]) for event in events}
+    total_subscribers = sum(stats["subscribersByCity"].values())
+    
+    cell = 'style="padding: 6px 10px; border-bottom: 1px solid #e5e5e5; text-align: right;"'
+    head = 'style="padding: 6px 10px; border-bottom: 2px solid #1a1a1a; text-align: right;"'
+    rows = "".join(
+        f"<tr><td {cell.replace('right', 'left')}>{day['date']}</td>"
+        + "".join(f"<td {cell}>{day[event]}</td>" for event in events)
+        + "</tr>"
+        for day in stats["daily"]
+    )
+    city_rows = "".join(
+        f"<tr><td {cell.replace('right', 'left')}>{city.capitalize()}</td><td {cell}>{count}</td></tr>"
+        for city, count in stats["subscribersByCity"].items()
+    )
+    
+    html_body = f"""
+<!DOCTYPE html>
+<html>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 560px; margin: 0 auto; padding: 24px; color: #1a1a1a;">
+    <h2 style="margin: 0 0 8px 0;">FillYaTank — last {days} days</h2>
+    <p style="font-size: 16px; line-height: 1.6; margin: 0 0 24px 0;">
+        <strong>{totals['views']}</strong> homepage views ·
+        <strong>{totals['signups']}</strong> sign-ups ·
+        <strong>{totals['confirmations']}</strong> confirmed ·
+        <strong>{totals['unsubscribes']}</strong> unsubscribed<br>
+        <strong>{total_subscribers}</strong> subscribers in total
+    </p>
+    <table style="border-collapse: collapse; font-size: 14px; margin: 0 0 24px 0;">
+        <tr><th {head.replace('right', 'left')}>Date</th><th {head}>Views</th><th {head}>Sign-ups</th><th {head}>Confirmed</th><th {head}>Unsubscribed</th></tr>
+        {rows}
+    </table>
+    <table style="border-collapse: collapse; font-size: 14px;">
+        <tr><th {head.replace('right', 'left')}>City</th><th {head}>Subscribers</th></tr>
+        {city_rows}
+    </table>
+    <p style="font-size: 13px; color: #999; margin: 24px 0 0 0;">
+        Anonymous counts only: no cookies, IP addresses or identifiers. Views are counted when the homepage loads in a browser, so most bots are excluded. Dates are Sydney time.
+    </p>
+</body>
+</html>
+"""
+    
+    print(f"\n📊 Stats report: {totals['views']} views, {totals['signups']} sign-ups, "
+          f"{totals['confirmations']} confirmed, {total_subscribers} subscribers")
+    return send_email(TEST_EMAIL, f"📊 FillYaTank weekly stats: {totals['views']} views, {totals['confirmations']} new subscribers", html_body)
+
+
 def main():
     """Main execution flow."""
     print(f"Fuel Price Alert - {datetime.now().isoformat()}")
@@ -298,6 +365,9 @@ def main():
     if RESEND_API_KEY and SECRET_KEY == "change-this-in-production":
         print("Error: SECRET_KEY is not set; refusing to send emails with forgeable unsubscribe links")
         return 1
+    
+    if STATS_REPORT:
+        return 0 if send_stats_report() else 1
     
     if SIMULATE_BUY_CITY:
         if SIMULATE_BUY_CITY not in CITIES or not TEST_EMAIL:
@@ -387,6 +457,14 @@ def main():
                     failures += 1
     else:
         print("\nNo transitions detected. No alerts sent.")
+    
+    # Weekly owner summary on the Monday scheduled run. A failure here must not
+    # fail the run, or state.json wouldn't be committed and alerts would repeat.
+    if os.environ.get("GITHUB_EVENT_NAME") == "schedule" and datetime.utcnow().weekday() == 0:
+        try:
+            send_stats_report()
+        except Exception as e:
+            print(f"Warning: stats report failed: {e}")
     
     if failures:
         print(f"\n✗ {failures} alert(s) failed to send")

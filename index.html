@@ -599,6 +599,9 @@
         
         // Initialize
         updateDashboard();
+        
+        // Anonymous view count: no cookies, no identifiers
+        navigator.sendBeacon('https://fillyatank-signup.p-m-palaniswami.workers.dev/?action=view');
     </script>
 </body>
 </html>
