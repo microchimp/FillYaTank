@@ -469,8 +469,7 @@ p {
 
 /* Cards sitting on white sections need a touch more separation */
 
-.cycle-chart,
-.steps li {
+.cycle-chart {
   background: var(--surface);
   box-shadow: var(--shadow);
 }
@@ -575,36 +574,6 @@ p {
 }
 
 .cycle-points span {
-  color: var(--text-muted);
-}
-
-/* Steps */
-
-.steps {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: grid;
-  gap: 16px;
-}
-
-.steps li {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 22px;
-}
-
-.steps .num {
-  margin-bottom: 12px;
-}
-
-.steps h3 {
-  font-size: 19px;
-  margin-bottom: 6px;
-}
-
-.steps p {
   color: var(--text-muted);
 }
 
@@ -855,10 +824,6 @@ p {
 @media (min-width: 640px) {
   .field-row {
     grid-template-columns: 1.4fr 1fr;
-  }
-
-  .steps {
-    grid-template-columns: repeat(3, 1fr);
   }
 
   .signup {
