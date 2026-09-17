@@ -593,106 +593,94 @@ p {
 
 /* Status */
 
-.status-band {
-  background: #eef3ec;
-  border-top-color: #dde6da;
+.status-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  max-width: 600px;
+  margin: 0 auto;
 }
 
-.city-tiles {
+.status-list {
   list-style: none;
-  margin: 0 auto;
+  margin: 0;
   padding: 0;
-  max-width: 1000px;
+}
+
+.status-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--border);
+}
+
+.status-row:last-child {
+  border-bottom: 0;
+}
+
+.city-name {
+  font-weight: 700;
+  font-size: 20px;
+  letter-spacing: -0.01em;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 17px;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 7px 16px;
+  white-space: nowrap;
+  background: var(--surface-muted);
+  color: var(--text-muted);
+}
+
+.pill::before {
+  content: "";
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.pill.wait {
+  background: var(--hold-soft);
+  color: var(--hold);
+  box-shadow: inset 0 0 0 1.5px #efd9a3;
+}
+
+.pill.buy {
+  background: var(--accent);
+  color: #fff;
+}
+
+.pill.buy::before {
+  width: 14px;
+  height: 14px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 12.5l5 5L20 6.5'/%3E%3C/svg%3E") center / contain no-repeat;
+  border-radius: 0;
+}
+
+.status-footer {
   display: flex;
   flex-wrap: wrap;
-  justify-content: center;
-  gap: 12px;
-}
-
-.city-tile {
-  background: var(--surface);
-  border: 2px solid var(--border);
-  border-radius: var(--radius);
-  padding: 20px 14px 18px;
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  box-shadow: var(--shadow);
-  flex: 1 1 150px;
-  max-width: 188px;
-}
-
-.tile-icon {
-  width: 46px;
-  height: 46px;
-  border-radius: 50%;
-  background: var(--surface-muted) center / 24px 24px no-repeat;
-  margin-bottom: 8px;
-}
-
-.tile-city {
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-}
-
-.tile-status {
-  font-size: 24px;
-  font-weight: 750;
-  letter-spacing: -0.02em;
-  line-height: 1.2;
-}
-
-.tile-note {
+  justify-content: space-between;
+  gap: 4px 16px;
   font-size: 14px;
   color: var(--text-muted);
-}
-
-.city-tile.wait {
-  border-color: #efd9a3;
-}
-
-.city-tile.wait .tile-icon {
-  background-color: var(--hold-soft);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%238a5a00'%3E%3Crect x='6' y='5' width='4' height='14' rx='1.5'/%3E%3Crect x='14' y='5' width='4' height='14' rx='1.5'/%3E%3C/svg%3E");
-}
-
-.city-tile.wait .tile-status {
-  color: var(--hold);
-}
-
-.city-tile.buy {
-  border-color: var(--accent);
-  background: var(--accent-soft);
-}
-
-.city-tile.buy .tile-icon {
-  background-color: var(--accent);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E");
-}
-
-.city-tile.buy .tile-status {
-  color: var(--accent-text);
-}
-
-.status-meta {
-  text-align: center;
-  font-size: 15px;
-  color: var(--text-muted);
-  margin-top: 20px;
-}
-
-.status-meta:empty {
-  display: none;
+  background: var(--surface-muted);
+  padding: 12px 24px;
 }
 
 .notice {
-  max-width: 640px;
-  margin: 18px auto 0;
+  max-width: 600px;
+  margin: 20px auto 0;
   font-size: 15px;
   color: var(--text-muted);
   text-align: center;

@@ -8,7 +8,7 @@
     <link rel="canonical" href="https://fillyatank.app/">
     <meta name="theme-color" content="#fafaf7">
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-    <link rel="stylesheet" href="/styles.css?v=3">
+    <link rel="stylesheet" href="/styles.css?v=4">
 
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="FillYaTank">
@@ -192,45 +192,24 @@
             </div>
         </section>
 
-        <section class="section status-band" id="today" aria-labelledby="today-title">
+        <section class="section" id="today" aria-labelledby="today-title">
             <div class="wrap">
                 <h2 id="today-title">Where each city is today</h2>
                 <p class="section-intro">Based on the ACCC's latest buying tip for each city.</p>
 
-                <ul class="city-tiles">
-                    <li class="city-tile" data-city="sydney">
-                        <span class="tile-icon" aria-hidden="true"></span>
-                        <span class="tile-city">Sydney</span>
-                        <span class="tile-status">Checking…</span>
-                        <span class="tile-note">&nbsp;</span>
-                    </li>
-                    <li class="city-tile" data-city="melbourne">
-                        <span class="tile-icon" aria-hidden="true"></span>
-                        <span class="tile-city">Melbourne</span>
-                        <span class="tile-status">Checking…</span>
-                        <span class="tile-note">&nbsp;</span>
-                    </li>
-                    <li class="city-tile" data-city="brisbane">
-                        <span class="tile-icon" aria-hidden="true"></span>
-                        <span class="tile-city">Brisbane</span>
-                        <span class="tile-status">Checking…</span>
-                        <span class="tile-note">&nbsp;</span>
-                    </li>
-                    <li class="city-tile" data-city="adelaide">
-                        <span class="tile-icon" aria-hidden="true"></span>
-                        <span class="tile-city">Adelaide</span>
-                        <span class="tile-status">Checking…</span>
-                        <span class="tile-note">&nbsp;</span>
-                    </li>
-                    <li class="city-tile" data-city="perth">
-                        <span class="tile-icon" aria-hidden="true"></span>
-                        <span class="tile-city">Perth</span>
-                        <span class="tile-status">Checking…</span>
-                        <span class="tile-note">&nbsp;</span>
-                    </li>
-                </ul>
-
-                <p class="status-meta" id="lastChecked"></p>
+                <div class="status-card">
+                    <ul class="status-list">
+                        <li class="status-row"><span class="city-name">Sydney</span><span class="pill" data-city="sydney">Checking…</span></li>
+                        <li class="status-row"><span class="city-name">Melbourne</span><span class="pill" data-city="melbourne">Checking…</span></li>
+                        <li class="status-row"><span class="city-name">Brisbane</span><span class="pill" data-city="brisbane">Checking…</span></li>
+                        <li class="status-row"><span class="city-name">Adelaide</span><span class="pill" data-city="adelaide">Checking…</span></li>
+                        <li class="status-row"><span class="city-name">Perth</span><span class="pill" data-city="perth">Checking…</span></li>
+                    </ul>
+                    <div class="status-footer">
+                        <span><strong>Fill up now</strong> = at the bottom · <strong>Hold off</strong> = not yet</span>
+                        <span id="lastChecked"></span>
+                    </div>
+                </div>
 
                 <p class="notice">
                     Since the Middle East conflict began in late February 2026, the ACCC says price cycles have mostly paused in Sydney, Melbourne, Brisbane and Adelaide.
@@ -321,23 +300,18 @@
             try { state = JSON.parse(stateText); } catch (e) { /* leave null */ }
 
             const buyCities = [];
-            document.querySelectorAll('.city-tile[data-city]').forEach(tile => {
-                const phase = state && state[tile.dataset.city];
-                const status = tile.querySelector('.tile-status');
-                const note = tile.querySelector('.tile-note');
-                tile.classList.remove('buy', 'wait');
+            document.querySelectorAll('.pill[data-city]').forEach(pill => {
+                const phase = state && state[pill.dataset.city];
+                pill.classList.remove('buy', 'wait');
                 if (phase === 'BUY') {
-                    tile.classList.add('buy');
-                    status.textContent = 'Fill up now';
-                    note.textContent = 'At the bottom';
-                    buyCities.push(CITY_NAMES[tile.dataset.city]);
+                    pill.classList.add('buy');
+                    pill.textContent = 'Fill up now';
+                    buyCities.push(CITY_NAMES[pill.dataset.city]);
                 } else if (phase === 'WAIT') {
-                    tile.classList.add('wait');
-                    status.textContent = 'Hold off';
-                    note.textContent = 'Not at the bottom yet';
+                    pill.classList.add('wait');
+                    pill.textContent = 'Hold off';
                 } else {
-                    status.textContent = 'Unavailable';
-                    note.textContent = 'Try again later';
+                    pill.textContent = 'Unavailable';
                 }
             });
 
