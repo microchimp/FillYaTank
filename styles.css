@@ -1,5 +1,13 @@
 /* FillYaTank — shared styles */
 
+/* Caveat by The Caveat Project Authors, SIL Open Font License 1.1 (fonts/Caveat-OFL.txt) */
+@font-face {
+  font-family: "Caveat";
+  src: url("/fonts/caveat.woff2") format("woff2");
+  font-weight: 400 700;
+  font-display: swap;
+}
+
 :root {
   --bg: #fafaf7;
   --surface: #ffffff;
@@ -19,6 +27,9 @@
   --radius-sm: 10px;
   --shadow: 0 1px 2px rgba(20, 30, 25, 0.04), 0 8px 24px rgba(20, 30, 25, 0.06);
   --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --hand: "Caveat", "Segoe Print", "Bradley Hand", cursive;
+  --pencil: #3a4a40;
+  --sticky: #fff1a6;
 }
 
 *,
@@ -1066,4 +1077,212 @@ p {
   .section {
     padding: 72px 0;
   }
+}
+
+/* ------------------------------------------------------------------ */
+/* Scratchpad style: handwriting for headings and notes, doodles       */
+/* ------------------------------------------------------------------ */
+
+body {
+  background-image: radial-gradient(#d8dcd3 1.1px, transparent 1.2px);
+  background-size: 24px 24px;
+}
+
+.section h2,
+.cta-band h2 {
+  font-family: var(--hand);
+  font-weight: 700;
+  font-size: clamp(42px, 7vw, 58px);
+  letter-spacing: 0;
+  line-height: 1.05;
+}
+
+.eyebrow {
+  font-family: var(--hand);
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--text);
+  background: var(--sticky);
+  padding: 4px 14px 6px;
+  border-radius: 4px;
+  transform: rotate(-2.5deg);
+  box-shadow: 0 2px 6px rgba(20, 30, 25, 0.12);
+}
+
+.mark-underline {
+  white-space: nowrap;
+}
+
+.preview-label {
+  position: relative;
+  font-family: var(--hand);
+  font-size: 30px;
+  font-weight: 700;
+  color: var(--pencil);
+  margin-bottom: 14px;
+  padding-right: 64px;
+  display: inline-block;
+  transform: rotate(-1.5deg);
+}
+
+.doodle-arrow {
+  width: 56px;
+  height: 46px;
+  fill: none;
+  stroke: var(--pencil);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.preview-label .doodle-arrow {
+  position: absolute;
+  right: 0;
+  top: 12px;
+}
+
+.sticky-note {
+  position: relative;
+  margin: 22px 0 0 auto;
+  max-width: 330px;
+  padding: 18px 22px 20px;
+  font-family: var(--hand);
+  font-size: 28px;
+  line-height: 1.15;
+  color: var(--text);
+  background: var(--sticky);
+  border-radius: 3px 3px 18px 3px;
+  box-shadow: 0 10px 22px rgba(20, 30, 25, 0.14), 0 2px 4px rgba(20, 30, 25, 0.08);
+  transform: rotate(2deg);
+}
+
+.sticky-note::before {
+  content: "";
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  width: 90px;
+  height: 24px;
+  margin-left: -45px;
+  background: rgba(255, 255, 255, 0.65);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  transform: rotate(-3deg);
+}
+
+.sticky-note strong {
+  font-weight: 700;
+}
+
+.margin-note {
+  font-family: var(--hand);
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--pencil);
+  line-height: 1;
+}
+
+/* Illustrative chart and step numbers in handwriting */
+
+.chart-callout,
+.chart-badge-text {
+  font-family: var(--hand);
+  font-weight: 700;
+}
+
+.chart-callout {
+  font-size: 27px;
+}
+
+.chart-badge-text {
+  font-size: 24px;
+}
+
+.cycle-points .num {
+  font-family: var(--hand);
+  font-size: 24px;
+}
+
+.steps li::before {
+  font-family: var(--hand);
+  font-size: 28px;
+  width: 42px;
+  height: 42px;
+  background: transparent;
+  border: 2.5px solid var(--accent);
+  border-radius: 55% 45% 50% 50% / 50% 55% 45% 50%;
+}
+
+.steps li:nth-child(1) { transform: rotate(-0.6deg); }
+.steps li:nth-child(2) { transform: rotate(0.5deg); }
+.steps li:nth-child(3) { transform: rotate(-0.3deg); }
+
+/* Status chart hint */
+
+.status-layout {
+  position: relative;
+}
+
+.chart-hint {
+  display: none;
+}
+
+@media (hover: hover) and (min-width: 900px) {
+  .chart-hint {
+    display: block;
+    position: absolute;
+    top: -30px;
+    left: 12px;
+    transform: rotate(-3deg);
+  }
+}
+
+/* Closing call to action */
+
+.cta-doodle-wrap {
+  position: relative;
+  display: inline-block;
+}
+
+.cta-note {
+  position: absolute;
+  left: -196px;
+  top: -16px;
+  color: #fff;
+  transform: rotate(-6deg);
+  white-space: nowrap;
+}
+
+.cta-arrow {
+  position: absolute;
+  left: -62px;
+  top: 6px;
+  stroke: #fff;
+}
+
+@media (max-width: 639px) {
+  .cta-note,
+  .cta-arrow {
+    display: none;
+  }
+}
+
+/* A little life on buttons */
+
+.button {
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s;
+}
+
+.button:hover {
+  transform: translateY(-2px) rotate(-0.5deg);
+  box-shadow: 0 8px 18px rgba(30, 125, 70, 0.28);
+}
+
+.button:active {
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .button { transition: none; }
+  .button:hover { transform: none; }
 }

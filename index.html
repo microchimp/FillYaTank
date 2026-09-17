@@ -8,7 +8,8 @@
     <link rel="canonical" href="https://fillyatank.app/">
     <meta name="theme-color" content="#fafaf7">
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-    <link rel="stylesheet" href="/styles.css?v=7">
+    <link rel="preload" href="/fonts/caveat.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="/styles.css?v=8">
 
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="FillYaTank">
@@ -45,8 +46,8 @@
         <section class="hero">
             <div class="wrap hero-grid">
                 <div>
-                    <span class="eyebrow">Free petrol price alerts</span>
-                    <h1>Know when petrol is cheapest in your city.</h1>
+                    <span class="eyebrow">free petrol price alerts!</span>
+                    <h1>Know when petrol is <span class="mark-underline">cheapest</span> in your city.</h1>
                     <p class="lead">
                         In Sydney, Melbourne, Brisbane, Adelaide and Perth, petrol prices rise and fall in a regular cycle.
                         We follow the ACCC's buying advice and send you one email when prices hit the bottom, so you can fill up at the cheapest time.
@@ -89,7 +90,9 @@
                 </div>
 
                 <div>
-                    <p class="preview-label">This is the only email you'll get:</p>
+                    <p class="preview-label">the only email you'll ever get
+                        <svg class="doodle-arrow" viewBox="0 0 60 50" aria-hidden="true"><path d="M6 6 C 26 4, 44 14, 46 38" /><path d="M36 30 L46 40 L52 27" /></svg>
+                    </p>
                     <div class="email-preview" role="img" aria-label="Example alert email from FillYaTank: Melbourne petrol prices are at the bottom. Prices have hit the low point of the cycle.">
                         <div class="email-meta">
                             <span class="email-avatar" aria-hidden="true">
@@ -105,7 +108,7 @@
                             <span class="email-footer">Unsubscribe</span>
                         </div>
                     </div>
-                    <p class="preview-caption"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="#1e7d46"/><path d="M7 12.5l3.2 3.2L17.2 8.5" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span><strong>No newsletters, no marketing.</strong> Just this, when it's time.</span></p>
+                    <p class="sticky-note"><strong>No newsletters. No marketing.</strong><br>Just this, when it's time.</p>
                 </div>
             </div>
         </section>
@@ -197,6 +200,7 @@
                 <p class="section-intro">Based on the ACCC's latest buying tip. Hover over or tap a city to see its average petrol price over the last 45 days.</p>
 
                 <div class="status-layout">
+                    <span class="margin-note chart-hint" aria-hidden="true">hover over a city ↓</span>
                     <div class="status-card">
                         <ul class="status-list">
                         <li><button class="status-row" type="button" data-city="sydney" aria-controls="cityChart"><span class="city-name">Sydney</span><span class="pill" data-city="sydney">Checking…</span></button></li>
@@ -276,7 +280,11 @@
             <div class="wrap">
                 <h2 id="cta-title">Stop filling up at the peak</h2>
                 <p>One free email when your city's prices hit the bottom.</p>
-                <a class="button" href="#main" id="backToSignup">Email me when to fill up</a>
+                <div class="cta-doodle-wrap">
+                    <span class="margin-note cta-note" aria-hidden="true">takes 30 seconds</span>
+                    <svg class="doodle-arrow cta-arrow" viewBox="0 0 60 50" aria-hidden="true"><path d="M6 8 C 24 6, 40 16, 44 38" /><path d="M34 30 L44 40 L50 27" /></svg>
+                    <a class="button" href="#main" id="backToSignup">Email me when to fill up</a>
+                </div>
             </div>
         </section>
     </main>
@@ -288,6 +296,8 @@
         </div>
     </footer>
 
+    <script src="/vendor/rough-notation.iife.js"></script>
+    <script src="/vendor/confetti.browser.js"></script>
     <script>
         const CITY_NAMES = { sydney: 'Sydney', melbourne: 'Melbourne', brisbane: 'Brisbane', adelaide: 'Adelaide', perth: 'Perth' };
 
@@ -383,6 +393,7 @@
                 if (response.ok) {
                     const city = CITY_NAMES[form.city.value];
                     show('success', `Nearly done! Check your inbox and click the link to confirm your ${city} alerts.`);
+                    celebrate(button);
                     form.reset();
                 } else {
                     show('error', data.error || 'Something went wrong. Please try again.');
@@ -509,6 +520,31 @@
                 }
             });
         });
+
+        const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        function celebrate(origin) {
+            if (reduceMotion || typeof confetti !== 'function') return;
+            const rect = origin.getBoundingClientRect();
+            const shoot = confetti.create(null, { resize: true, useWorker: false });
+            shoot({
+                particleCount: 90,
+                spread: 70,
+                startVelocity: 38,
+                origin: { x: (rect.left + rect.width / 2) / innerWidth, y: rect.top / innerHeight },
+                colors: ['#1e7d46', '#7ac68e', '#ffd84d', '#1b1f1d']
+            });
+        }
+
+        // Hand-drawn annotations
+        if (window.RoughNotation) {
+            const { annotate } = RoughNotation;
+            const underline = document.querySelector('.mark-underline');
+            if (underline) {
+                const draw = () => annotate(underline, { type: 'underline', color: '#1e7d46', strokeWidth: 4, padding: 2, iterations: 2, animate: !reduceMotion, animationDuration: 900 }).show();
+                (document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve()).then(draw);
+            }
+        }
 
         updateStatus();
         loadPrices();
