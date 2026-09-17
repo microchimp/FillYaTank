@@ -1,605 +1,393 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en-AU">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fuel Alert — Know when to fill up</title>
-    <meta name="description" content="Get a single email when petrol prices hit the bottom. No spam, no tracking, just savings.">
-    
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        :root {
-            --bg: #0a0a0a;
-            --surface: #141414;
-            --border: #262626;
-            --text: #fafafa;
-            --text-muted: #737373;
-            --green: #22c55e;
-            --green-dim: #166534;
-            --amber: #f59e0b;
-            --amber-dim: #92400e;
-            --red: #ef4444;
-        }
-        
-        body {
-            font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            min-height: 100vh;
-            line-height: 1.5;
-        }
-        
-        .container {
-            max-width: 640px;
-            margin: 0 auto;
-            padding: 48px 24px;
-        }
-        
-        header {
-            margin-bottom: 48px;
-        }
-        
-        h1 {
-            font-size: 32px;
-            font-weight: 600;
-            margin-bottom: 12px;
-            letter-spacing: -0.02em;
-        }
-        
-        .tagline {
-            color: var(--text-muted);
-            font-size: 18px;
-        }
-        
-        /* Status Dashboard */
-        .dashboard {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            overflow: hidden;
-            margin-bottom: 32px;
-        }
-        
-        .dashboard-header {
-            padding: 16px 20px;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .dashboard-title {
-            font-size: 14px;
-            font-weight: 500;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-        
-        .last-updated {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 12px;
-            color: var(--text-muted);
-        }
-        
-        .city-list {
-            list-style: none;
-        }
-        
-        .city-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 16px 20px;
-            border-bottom: 1px solid var(--border);
-            transition: background 0.15s ease;
-        }
-        
-        .city-row:last-child {
-            border-bottom: none;
-        }
-        
-        .city-row:hover {
-            background: rgba(255, 255, 255, 0.02);
-        }
-        
-        .city-name {
-            font-weight: 500;
-            font-size: 16px;
-        }
-        
-        .status-badge {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 13px;
-            font-weight: 500;
-            padding: 6px 12px;
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .status-badge::before {
-            content: '';
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-        }
-        
-        .status-buy {
-            background: rgba(34, 197, 94, 0.15);
-            color: var(--green);
-        }
-        
-        .status-buy::before {
-            background: var(--green);
-            box-shadow: 0 0 8px var(--green);
-        }
-        
-        .status-wait {
-            background: rgba(115, 115, 115, 0.15);
-            color: var(--text-muted);
-        }
-        
-        .status-wait::before {
-            background: var(--text-muted);
-        }
-        
-        .status-unknown {
-            background: rgba(115, 115, 115, 0.1);
-            color: var(--text-muted);
-        }
-        
-        .status-unknown::before {
-            background: var(--text-muted);
-            opacity: 0.5;
-        }
-        
-        /* Info Box */
-        .info-box {
-            background: rgba(34, 197, 94, 0.08);
-            border: 1px solid rgba(34, 197, 94, 0.2);
-            border-radius: 8px;
-            padding: 16px;
-            margin-bottom: 32px;
-            font-size: 14px;
-            color: rgba(255, 255, 255, 0.8);
-        }
-        
-        .info-box strong {
-            color: var(--green);
-        }
-        
-        /* Signup Form */
-        .signup-section {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 24px;
-            margin-bottom: 32px;
-        }
-        
-        .signup-section h2 {
-            font-size: 20px;
-            font-weight: 600;
-            margin-bottom: 8px;
-        }
-        
-        .signup-section p {
-            color: var(--text-muted);
-            font-size: 14px;
-            margin-bottom: 20px;
-        }
-        
-        .form-row {
-            margin-bottom: 16px;
-        }
-        
-        label {
-            display: block;
-            font-size: 13px;
-            font-weight: 500;
-            margin-bottom: 6px;
-            color: var(--text-muted);
-        }
-        
-        input[type="email"],
-        select {
-            width: 100%;
-            padding: 12px 14px;
-            font-size: 16px;
-            font-family: inherit;
-            background: var(--bg);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            color: var(--text);
-            transition: border-color 0.15s ease;
-        }
-        
-        input[type="email"]:focus,
-        select:focus {
-            outline: none;
-            border-color: var(--green);
-        }
-        
-        select {
-            cursor: pointer;
-            appearance: none;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23737373' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: right 12px center;
-        }
-        
-        /* Honeypot - hidden from humans */
-        .hp-field {
-            position: absolute;
-            left: -9999px;
-            opacity: 0;
-            pointer-events: none;
-        }
-        
-        button[type="submit"] {
-            width: 100%;
-            padding: 14px 24px;
-            font-size: 16px;
-            font-weight: 600;
-            font-family: inherit;
-            background: var(--green);
-            color: #000;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: transform 0.1s ease, box-shadow 0.15s ease;
-        }
-        
-        button[type="submit"]:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
-        }
-        
-        button[type="submit"]:active {
-            transform: translateY(0);
-        }
-        
-        button[type="submit"]:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
-        
-        .form-message {
-            margin-top: 12px;
-            padding: 12px;
-            border-radius: 6px;
-            font-size: 14px;
-            display: none;
-        }
-        
-        .form-message.success {
-            display: block;
-            background: rgba(34, 197, 94, 0.15);
-            color: var(--green);
-        }
-        
-        .form-message.error {
-            display: block;
-            background: rgba(239, 68, 68, 0.15);
-            color: var(--red);
-        }
-        
-        /* Perth Note */
-        .perth-note {
-            font-size: 13px;
-            color: var(--text-muted);
-            margin-top: 16px;
-            padding-top: 16px;
-            border-top: 1px solid var(--border);
-        }
-        
-        /* Features */
-        .features {
-            display: grid;
-            gap: 16px;
-            margin-bottom: 48px;
-        }
-        
-        .feature {
-            display: flex;
-            gap: 12px;
-            align-items: flex-start;
-        }
-        
-        .feature-icon {
-            width: 20px;
-            height: 20px;
-            color: var(--green);
-            flex-shrink: 0;
-            margin-top: 2px;
-        }
-        
-        .feature-text {
-            font-size: 14px;
-            color: var(--text-muted);
-        }
-        
-        /* Footer */
-        footer {
-            border-top: 1px solid var(--border);
-            padding-top: 24px;
-            text-align: center;
-        }
-        
-        .dedication {
-            font-size: 14px;
-            color: var(--text-muted);
-            font-style: italic;
-            margin-bottom: 16px;
-        }
-        
-        .footer-links {
-            font-size: 13px;
-            color: var(--text-muted);
-        }
-        
-        .footer-links a {
-            color: var(--text-muted);
-            text-decoration: none;
-            transition: color 0.15s ease;
-        }
-        
-        .footer-links a:hover {
-            color: var(--text);
-        }
-        
-        /* Loading state */
-        .loading .status-badge {
-            animation: pulse 1.5s ease-in-out infinite;
-        }
-        
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-    </style>
+    <title>FillYaTank — Know when petrol is cheapest in your city</title>
+    <meta name="description" content="Free email alerts when petrol prices hit the bottom of the price cycle in Sydney, Melbourne, Brisbane, Adelaide and Perth. Based on ACCC buying tips. No ads.">
+    <link rel="canonical" href="https://fillyatank.app/">
+    <meta name="theme-color" content="#fafaf7">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="/styles.css">
+
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="FillYaTank">
+    <meta property="og:url" content="https://fillyatank.app/">
+    <meta property="og:title" content="FillYaTank — Know when petrol is cheapest in your city">
+    <meta property="og:description" content="Petrol prices rise and fall in a cycle. Get one free email when your city hits the bottom.">
+    <meta property="og:image" content="https://fillyatank.app/og-image.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta name="twitter:card" content="summary_large_image">
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>⛽ Fuel Alert</h1>
-            <p class="tagline">One email when prices hit bottom. That's it.</p>
-        </header>
-        
-        <section class="dashboard loading" id="dashboard">
-            <div class="dashboard-header">
-                <span class="dashboard-title">Current Status</span>
-                <span class="last-updated" id="lastUpdated">Loading...</span>
-            </div>
-            <ul class="city-list" id="cityList">
-                <li class="city-row">
-                    <span class="city-name">Sydney</span>
-                    <span class="status-badge status-unknown" data-city="sydney">—</span>
-                </li>
-                <li class="city-row">
-                    <span class="city-name">Melbourne</span>
-                    <span class="status-badge status-unknown" data-city="melbourne">—</span>
-                </li>
-                <li class="city-row">
-                    <span class="city-name">Brisbane</span>
-                    <span class="status-badge status-unknown" data-city="brisbane">—</span>
-                </li>
-                <li class="city-row">
-                    <span class="city-name">Adelaide</span>
-                    <span class="status-badge status-unknown" data-city="adelaide">—</span>
-                </li>
-                <li class="city-row">
-                    <span class="city-name">Perth</span>
-                    <span class="status-badge status-unknown" data-city="perth">—</span>
-                </li>
-            </ul>
-        </section>
-        
-        <div class="info-box" id="buyAlert" style="display: none;">
-            <strong>🟢 Now's a good time!</strong> Some cities are at the bottom of their price cycle. Fill up within 24 hours.
-        </div>
-        
-        <section class="signup-section">
-            <h2>Get notified</h2>
-            <p>We'll email you when your city's prices hit the bottom. Nothing else.</p>
-            
-            <form id="signupForm" action="https://fillyatank-signup.p-m-palaniswami.workers.dev/" method="POST">
-                <div class="form-row">
-                    <label for="email">Email</label>
-                    <input 
-                        type="email" 
-                        id="email" 
-                        name="email" 
-                        required 
-                        placeholder="you@example.com"
-                        autocomplete="email"
-                    >
-                </div>
-                
-                <div class="form-row">
-                    <label for="city">City</label>
-                    <select id="city" name="city" required>
-                        <option value="">Select your city</option>
-                        <option value="sydney">Sydney</option>
-                        <option value="melbourne">Melbourne</option>
-                        <option value="brisbane">Brisbane</option>
-                        <option value="adelaide">Adelaide</option>
-                        <option value="perth">Perth</option>
-                    </select>
-                </div>
-                
-                <!-- Honeypot field - hidden from humans, visible to bots -->
-                <div class="hp-field" aria-hidden="true">
-                    <label for="website">Website</label>
-                    <input type="text" id="website" name="website" tabindex="-1" autocomplete="off">
-                </div>
-                
-                <button type="submit" id="submitBtn">Subscribe</button>
-                
-                <div class="form-message" id="formMessage"></div>
-            </form>
-            
-            <p class="perth-note">
-                <strong>Perth users:</strong> Perth has weekly price cycles (every Tuesday), so you'll hear from us more often than east coast cities.
-            </p>
-        </section>
-        
-        <section class="features">
-            <div class="feature">
-                <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-                    <polyline points="22 4 12 14.01 9 11.01"/>
-                </svg>
-                <span class="feature-text">One email per cycle. No spam, no weekly digests, no marketing.</span>
-            </div>
-            <div class="feature">
-                <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-                </svg>
-                <span class="feature-text">Privacy first. We store your email and city. That's it. No tracking.</span>
-            </div>
-            <div class="feature">
-                <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="10"/>
-                    <polyline points="12 6 12 12 16 14"/>
-                </svg>
-                <span class="feature-text">24-hour window. Stations can't change prices same-day, so you have time.</span>
-            </div>
-        </section>
-        
-        <footer>
-            <p class="dedication">Inspired by "How They Get You" by Chris Kohler</p>
-            <p class="footer-links">
-                Data from <a href="https://www.accc.gov.au/consumers/petrol-and-fuel/petrol-price-cycles-in-the-5-largest-cities" target="_blank" rel="noopener">ACCC</a>
-            </p>
-        </footer>
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <div class="buy-banner hidden" id="buyBanner" role="status">
+        <div class="wrap"><span id="buyBannerText"></span> <a href="#today">See today's status</a></div>
     </div>
-    
+
+    <header class="site-header">
+        <div class="wrap">
+            <a class="brand" href="/" aria-label="FillYaTank home">
+                <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true">
+                    <rect width="32" height="32" rx="8" fill="#1e7d46"/>
+                    <path d="M5 10 L14 20 L16.5 8 L25 21" fill="none" stroke="#fff" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"/>
+                    <circle cx="25" cy="21" r="3.4" fill="#fff"/>
+                </svg>
+                FillYaTank
+            </a>
+            <a class="header-link" href="#how">How it works</a>
+        </div>
+    </header>
+
+    <main id="main">
+        <section class="hero">
+            <div class="wrap hero-grid">
+                <div>
+                    <span class="eyebrow">Free petrol price alerts</span>
+                    <h1>Know when petrol is cheapest in your city.</h1>
+                    <p class="lead">
+                        In Sydney, Melbourne, Brisbane, Adelaide and Perth, petrol prices rise and fall in a regular cycle.
+                        We follow the ACCC's buying advice and send you one email when prices hit the bottom, so you can fill up at the cheapest time.
+                    </p>
+
+                    <form class="signup" id="signupForm" action="https://fillyatank-signup.p-m-palaniswami.workers.dev/" method="POST">
+                        <div class="field-row">
+                            <div class="field">
+                                <label for="email">Email</label>
+                                <input type="email" id="email" name="email" required placeholder="you@example.com" autocomplete="email" inputmode="email">
+                            </div>
+                            <div class="field">
+                                <label for="city">Your city</label>
+                                <select id="city" name="city" required>
+                                    <option value="">Choose…</option>
+                                    <option value="sydney">Sydney</option>
+                                    <option value="melbourne">Melbourne</option>
+                                    <option value="brisbane">Brisbane</option>
+                                    <option value="adelaide">Adelaide</option>
+                                    <option value="perth">Perth</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Honeypot: hidden from people, filled in by bots -->
+                        <div class="hp-field" aria-hidden="true">
+                            <label for="website">Website</label>
+                            <input type="text" id="website" name="website" tabindex="-1" autocomplete="off">
+                        </div>
+
+                        <button class="button" type="submit" id="submitBtn">Email me when to fill up</button>
+                        <p class="form-note">We'll send a link to confirm your email. It expires in 1 hour.</p>
+                        <div class="form-message" id="formMessage" role="status" aria-live="polite"></div>
+                    </form>
+
+                    <ul class="promises">
+                        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M5 12l5 5L19 7"/></svg>Free, no ads</li>
+                        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M5 12l5 5L19 7"/></svg>One email per cycle</li>
+                        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M5 12l5 5L19 7"/></svg>Unsubscribe in one click</li>
+                    </ul>
+                </div>
+
+                <div>
+                    <p class="preview-label">This is the only email you'll get:</p>
+                    <div class="email-preview" role="img" aria-label="Example alert email from FillYaTank: Melbourne petrol prices are at the bottom. Fill up within 24 hours.">
+                        <div class="email-meta">
+                            <span class="email-avatar" aria-hidden="true">
+                                <svg viewBox="0 0 32 32"><path d="M5 10 L14 20 L16.5 8 L25 21" fill="none" stroke="#1e7d46" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"/><circle cx="25" cy="21" r="3.4" fill="#1e7d46"/></svg>
+                            </span>
+                            <div>
+                                <div class="email-from">FillYaTank</div>
+                                <div class="email-subject">⛽ Melbourne petrol prices are at the bottom</div>
+                            </div>
+                        </div>
+                        <div class="email-body">
+                            <p>Prices have hit the low point of the cycle.</p>
+                            <p class="email-cta">Fill up within 24 hours.</p>
+                            <span class="email-footer">Unsubscribe</span>
+                        </div>
+                    </div>
+                    <p class="preview-caption">No newsletters, no marketing. Just this, when it's time.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="section" id="how" aria-labelledby="how-title">
+            <div class="wrap">
+                <h2 id="how-title">How the petrol price cycle works</h2>
+                <p class="section-intro">Prices don't move randomly. In these five cities they follow a pattern, and the bottom is the time to fill up.</p>
+
+                <div class="cycle-grid">
+                    <figure class="cycle-chart" style="margin:0">
+                        <svg viewBox="0 0 560 300" role="img" aria-labelledby="chart-title chart-desc">
+                            <title id="chart-title">The petrol price cycle</title>
+                            <desc id="chart-desc">A sawtooth line. 1: prices jump up sharply. 2: they slowly fall over days or weeks. 3: at the lowest point, FillYaTank emails you, just before prices jump again.</desc>
+
+                            <defs>
+                                <marker id="arrowhead" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                                    <path d="M0 0 L10 5 L0 10 z" fill="#1e7d46"/>
+                                </marker>
+                            </defs>
+
+                            <!-- Axes -->
+                            <line class="chart-axis" x1="40" y1="250" x2="540" y2="250"/>
+                            <line class="chart-axis" x1="40" y1="30" x2="40" y2="250"/>
+                            <text class="chart-label" x="-140" y="28" text-anchor="middle" transform="rotate(-90)">Price</text>
+                            <text class="chart-label" x="540" y="278" text-anchor="end">Time →</text>
+
+                            <!-- Sawtooth cycle -->
+                            <polyline class="chart-line" points="48,98 150,215 168,55 330,222 348,62 400,104"/>
+
+                            <!-- 1: jump up -->
+                            <circle class="chart-badge" cx="136" cy="62" r="18"/>
+                            <text class="chart-badge-text" x="136" y="69" text-anchor="middle">1</text>
+                            <!-- 2: slow fall -->
+                            <circle class="chart-badge" cx="276" cy="110" r="18"/>
+                            <text class="chart-badge-text" x="276" y="117" text-anchor="middle">2</text>
+
+                            <!-- 3: bottom of the cycle, we email you -->
+                            <circle class="chart-halo" cx="330" cy="222" r="20"/>
+                            <circle class="chart-dot" cx="330" cy="222" r="9"/>
+                            <line x1="398" y1="190" x2="349" y2="215" stroke="#1e7d46" stroke-width="4" marker-end="url(#arrowhead)"/>
+                            <g transform="translate(398 140)">
+                                <rect x="0" y="0" width="156" height="76" rx="12" fill="#1e7d46"/>
+                                <g transform="translate(12 27)">
+                                    <rect x="0" y="0" width="28" height="21" rx="3" fill="#fff"/>
+                                    <path d="M2 3 L14 12 L26 3" fill="none" stroke="#1e7d46" stroke-width="2.4" stroke-linejoin="round"/>
+                                </g>
+                                <text class="chart-callout" x="50" y="33">We email</text>
+                                <text class="chart-callout" x="50" y="58">you here</text>
+                            </g>
+                        </svg>
+                    </figure>
+
+                    <ol class="cycle-points">
+                        <li><span class="num" aria-hidden="true">1</span><div><strong>Prices jump up</strong><span>Retailers raise prices sharply. Jumps of 20 cents a litre or more in a short time are common.</span></div></li>
+                        <li><span class="num" aria-hidden="true">2</span><div><strong>Then they slowly fall</strong><span>Over the following days or weeks, prices drift down as stations compete.</span></div></li>
+                        <li><span class="num good" aria-hidden="true">3</span><div><strong>At the bottom, we email you</strong><span>When the ACCC says prices are around their lowest point, you get one email: fill up now, before the next jump.</span></div></li>
+                    </ol>
+                </div>
+
+                <p class="cycle-lengths">Typical cycle length, according to the ACCC: Sydney about 5 weeks · Melbourne about 6 weeks · Brisbane about 6½ weeks · Adelaide about 2½ weeks · Perth about 1 week.</p>
+            </div>
+        </section>
+
+        <section class="section" aria-labelledby="steps-title">
+            <div class="wrap">
+                <h2 id="steps-title">How FillYaTank works</h2>
+                <p class="section-intro">It takes about 30 seconds to set up, and there's nothing to install.</p>
+                <ol class="steps">
+                    <li>
+                        <h3>Choose your city</h3>
+                        <p>Enter your email and pick Sydney, Melbourne, Brisbane, Adelaide or Perth. Confirm with the link we send.</p>
+                    </li>
+                    <li>
+                        <h3>We watch the cycle</h3>
+                        <p>Every Monday, Wednesday and Friday we check the ACCC's latest buying tip for your city.</p>
+                    </li>
+                    <li>
+                        <h3>You get one email</h3>
+                        <p>When prices reach the bottom, we email you. Fill up that day and skip the next price jump.</p>
+                    </li>
+                </ol>
+            </div>
+        </section>
+
+        <section class="section" id="today" aria-labelledby="today-title">
+            <div class="wrap">
+                <h2 id="today-title">Where each city is today</h2>
+                <p class="section-intro">Based on the ACCC's latest buying tip for each city.</p>
+
+                <div class="status-card">
+                    <ul class="status-list">
+                        <li class="status-row"><span class="city-name">Sydney</span><span class="pill" data-city="sydney">Checking…</span></li>
+                        <li class="status-row"><span class="city-name">Melbourne</span><span class="pill" data-city="melbourne">Checking…</span></li>
+                        <li class="status-row"><span class="city-name">Brisbane</span><span class="pill" data-city="brisbane">Checking…</span></li>
+                        <li class="status-row"><span class="city-name">Adelaide</span><span class="pill" data-city="adelaide">Checking…</span></li>
+                        <li class="status-row"><span class="city-name">Perth</span><span class="pill" data-city="perth">Checking…</span></li>
+                    </ul>
+                    <div class="status-footer">
+                        <span><strong>Fill up now</strong> = at the bottom · <strong>Hold off</strong> = not yet</span>
+                        <span id="lastChecked"></span>
+                    </div>
+                </div>
+
+                <p class="notice">
+                    Since the Middle East conflict began in late February 2026, the ACCC says price cycles have mostly paused in Sydney, Melbourne, Brisbane and Adelaide.
+                    If you sign up now, we'll email you when your city next hits the bottom.
+                </p>
+            </div>
+        </section>
+
+        <section class="section" aria-labelledby="faq-title">
+            <div class="wrap">
+                <h2 id="faq-title">Questions</h2>
+                <div class="faq">
+                    <details>
+                        <summary>Why is there a price cycle at all?</summary>
+                        <p>According to the ACCC, price cycles come from retailers' own pricing decisions, not from changes in wholesale costs. One or more retailers lead a sharp price rise, others follow, and prices then slowly drift back down. It isn't illegal, but there's no cost reason for it. If you think prices shouldn't work this way, tell your local MP. You can <a href="https://www.aph.gov.au/Senators_and_Members/Members" rel="noopener">find your federal MP here</a>.</p>
+                    </details>
+                    <details>
+                        <summary>Doesn't PetrolSpy already do this?</summary>
+                        <p>Sort of. Apps like PetrolSpy are great for finding the cheapest station near you, but you have to remember to check them, and they're supported by ads. FillYaTank comes to you instead: one email at the right time, no app and no ads.</p>
+                    </details>
+                    <details>
+                        <summary>Is it really free?</summary>
+                        <p>Yes. FillYaTank is a free, non-commercial project run by one person. There are no ads and no paid plans, and your email is never sold or shared.</p>
+                    </details>
+                    <details>
+                        <summary>How often will you email me?</summary>
+                        <p>Only when your city reaches the bottom of its price cycle, roughly once per cycle: every few weeks in the eastern cities and about weekly in Perth. Nothing else.</p>
+                    </details>
+                    <details>
+                        <summary>Where does the information come from?</summary>
+                        <p>The ACCC (Australian Competition and Consumer Commission) publishes petrol buying tips for these five cities on weekdays. We check them every Monday, Wednesday and Friday. FillYaTank isn't affiliated with the ACCC.</p>
+                    </details>
+                    <details>
+                        <summary>How long do I have to fill up?</summary>
+                        <p>Aim to fill up the same day. In Perth, WA's FuelWatch rules lock each day's prices in for 24 hours from 6am. In the other cities prices can jump quickly once a new cycle starts, so sooner is better.</p>
+                    </details>
+                    <details>
+                        <summary>Why only these five cities?</summary>
+                        <p>Regular price cycles happen in Australia's five largest cities. The ACCC doesn't publish buying tips for Canberra, Hobart, Darwin or most regional areas because prices there don't cycle in the same way.</p>
+                    </details>
+                    <details>
+                        <summary>What do you store about me?</summary>
+                        <p>Just your email address and city. No names, no tracking cookies and no analytics scripts. Page visits are counted anonymously.</p>
+                    </details>
+                    <details>
+                        <summary>How do I unsubscribe?</summary>
+                        <p>Every email has a one-click unsubscribe link.</p>
+                    </details>
+                </div>
+            </div>
+        </section>
+
+        <section class="section cta-band" aria-labelledby="cta-title">
+            <div class="wrap">
+                <h2 id="cta-title">Stop filling up at the peak</h2>
+                <p>One free email when your city's prices hit the bottom.</p>
+                <a class="button" href="#main" id="backToSignup">Email me when to fill up</a>
+            </div>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <div class="wrap">
+            <p>FillYaTank is a free project, inspired by <em>How They Get You</em> by Chris Kohler.</p>
+            <p>Buying tips from the <a href="https://www.accc.gov.au/consumers/petrol-and-fuel/petrol-price-cycles-in-the-5-largest-cities" rel="noopener">ACCC</a>. Not affiliated with the ACCC.</p>
+        </div>
+    </footer>
+
     <script>
-        // Load state from JSON file
-        async function loadState() {
+        const CITY_NAMES = { sydney: 'Sydney', melbourne: 'Melbourne', brisbane: 'Brisbane', adelaide: 'Adelaide', perth: 'Perth' };
+
+        async function fetchText(url) {
             try {
-                const response = await fetch('./data/state.json');
-                if (!response.ok) throw new Error('Failed to load state');
-                return await response.json();
+                const response = await fetch(url, { cache: 'no-store' });
+                return response.ok ? await response.text() : null;
             } catch (e) {
-                console.error('Error loading state:', e);
                 return null;
             }
         }
-        
-        // Update dashboard with current state
-        async function updateDashboard() {
-            const state = await loadState();
-            const dashboard = document.getElementById('dashboard');
-            
-            if (!state) {
-                document.getElementById('lastUpdated').textContent = 'Unable to load';
-                dashboard.classList.remove('loading');
-                return;
-            }
-            
-            let hasBuy = false;
-            
-            Object.entries(state).forEach(([city, phase]) => {
-                const badge = document.querySelector(`[data-city="${city}"]`);
-                if (!badge) return;
-                
-                badge.classList.remove('status-unknown', 'status-buy', 'status-wait');
-                
+
+        async function updateStatus() {
+            const [stateText, lastRun] = await Promise.all([
+                fetchText('/data/state.json'),
+                fetchText('/data/last_run.txt')
+            ]);
+
+            let state = null;
+            try { state = JSON.parse(stateText); } catch (e) { /* leave null */ }
+
+            const buyCities = [];
+            document.querySelectorAll('.pill[data-city]').forEach(pill => {
+                const phase = state && state[pill.dataset.city];
+                pill.classList.remove('buy', 'wait');
                 if (phase === 'BUY') {
-                    badge.classList.add('status-buy');
-                    badge.textContent = 'BUY NOW';
-                    hasBuy = true;
+                    pill.classList.add('buy');
+                    pill.textContent = 'Fill up now';
+                    buyCities.push(CITY_NAMES[pill.dataset.city]);
                 } else if (phase === 'WAIT') {
-                    badge.classList.add('status-wait');
-                    badge.textContent = 'WAIT';
+                    pill.classList.add('wait');
+                    pill.textContent = 'Hold off';
                 } else {
-                    badge.classList.add('status-unknown');
-                    badge.textContent = '—';
+                    pill.textContent = 'Unavailable';
                 }
             });
-            
-            // Show buy alert if any city is at BUY
-            document.getElementById('buyAlert').style.display = hasBuy ? 'block' : 'none';
-            
-            // Update timestamp
-            const now = new Date();
-            document.getElementById('lastUpdated').textContent = 
-                `Updated ${now.toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short' })}`;
-            
-            dashboard.classList.remove('loading');
+
+            const lastChecked = document.getElementById('lastChecked');
+            const date = lastRun && new Date(lastRun.trim() + 'T00:00:00');
+            if (date && !isNaN(date)) {
+                lastChecked.textContent = 'Last checked ' + date.toLocaleDateString('en-AU', { weekday: 'long', day: 'numeric', month: 'long' });
+            }
+
+            if (buyCities.length) {
+                const list = buyCities.length === 1 ? buyCities[0]
+                    : buyCities.slice(0, -1).join(', ') + ' and ' + buyCities[buyCities.length - 1];
+                document.getElementById('buyBannerText').textContent =
+                    `Right now: ${list} ${buyCities.length === 1 ? 'is' : 'are'} at the bottom of the price cycle. A good time to fill up.`;
+                document.getElementById('buyBanner').classList.remove('hidden');
+            }
         }
-        
-        // Form handling
-        document.getElementById('signupForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const form = e.target;
-            const submitBtn = document.getElementById('submitBtn');
+
+        document.getElementById('backToSignup').addEventListener('click', event => {
+            event.preventDefault();
+            document.getElementById('signupForm').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            document.getElementById('email').focus({ preventScroll: true });
+        });
+
+        document.getElementById('signupForm').addEventListener('submit', async event => {
+            event.preventDefault();
+            const form = event.target;
+            const button = document.getElementById('submitBtn');
             const message = document.getElementById('formMessage');
-            
-            // Check honeypot
+            const buttonText = button.textContent;
+
+            const show = (kind, text) => {
+                message.className = 'form-message ' + kind;
+                message.textContent = text;
+            };
+
+            // Honeypot filled: quietly pretend it worked
             if (form.website.value) {
-                // Bot detected - silently fail
-                message.className = 'form-message success';
-                message.textContent = 'Check your inbox to confirm.';
+                show('success', 'Check your inbox to confirm.');
                 return;
             }
-            
-            // Validate
-            const email = form.email.value.trim();
-            const city = form.city.value;
-            
-            if (!email || !city) {
-                message.className = 'form-message error';
-                message.textContent = 'Please fill in all fields.';
+
+            if (!form.email.value.trim() || !form.city.value) {
+                show('error', 'Please enter your email and choose your city.');
                 return;
             }
-            
-            // Submit
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Subscribing...';
-            
+
+            button.disabled = true;
+            button.textContent = 'Sending…';
+            show('', '');
+
             try {
                 const response = await fetch(form.action, {
                     method: 'POST',
                     body: new FormData(form),
                     headers: { 'Accept': 'application/json' }
                 });
-                
+                const data = await response.json().catch(() => ({}));
                 if (response.ok) {
-                    message.className = 'form-message success';
-                    message.textContent = 'Check your inbox to confirm your subscription.';
+                    const city = CITY_NAMES[form.city.value];
+                    show('success', `Nearly done! Check your inbox and click the link to confirm your ${city} alerts.`);
                     form.reset();
                 } else {
-                    throw new Error('Submission failed');
+                    show('error', data.error || 'Something went wrong. Please try again.');
                 }
             } catch (err) {
-                message.className = 'form-message error';
-                message.textContent = 'Something went wrong. Please try again.';
+                show('error', "Couldn't reach the server. Please check your connection and try again.");
             } finally {
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'Subscribe';
+                button.disabled = false;
+                button.textContent = buttonText;
             }
         });
-        
-        // Initialize
-        updateDashboard();
-        
+
+        updateStatus();
+
         // Anonymous view count: no cookies, no identifiers
         navigator.sendBeacon('https://fillyatank-signup.p-m-palaniswami.workers.dev/?action=view');
     </script>

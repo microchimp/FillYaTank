@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Fuel Price Alert System
+FillYaTank: petrol price cycle alerts
 Scrapes ACCC petrol price cycles page and sends email alerts
 when prices hit the bottom of the cycle.
 
@@ -27,7 +27,7 @@ CITIES = ["sydney", "melbourne", "brisbane", "adelaide", "perth"]
 DATA_DIR = Path(__file__).parent / "data"
 RESEND_API_KEY = os.environ.get("RESEND_API_KEY")
 FROM_EMAIL = os.environ.get("FROM_EMAIL", "alerts@yourdomain.com")
-SITE_URL = os.environ.get("SITE_URL", "https://yourusername.github.io/fuel-alert")
+SITE_URL = os.environ.get("SITE_URL", "https://fillyatank.app")
 SECRET_KEY = os.environ.get("SECRET_KEY", "change-this-in-production")
 WORKER_URL = os.environ.get("WORKER_URL", "https://fillyatank-signup.p-m-palaniswami.workers.dev")
 ADMIN_TOKEN = os.environ.get("ADMIN_TOKEN")
@@ -473,7 +473,7 @@ def send_stats_report(days: int = 7) -> bool:
 
 def main():
     """Main execution flow."""
-    print(f"Fuel Price Alert - {datetime.now().isoformat()}")
+    print(f"FillYaTank price check - {datetime.now().isoformat()}")
     print("=" * 50)
     
     if RESEND_API_KEY and SECRET_KEY == "change-this-in-production":

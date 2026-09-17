@@ -1,4 +1,6 @@
-# ⛽ Fuel Alert
+# ⛽ FillYaTank
+
+Live at **[fillyatank.app](https://fillyatank.app)**
 
 **One email when petrol prices hit the bottom. That's it.**
 
@@ -30,8 +32,8 @@ A privacy-first alert system that monitors Australian fuel price cycles and noti
 ### 1. Fork/Clone This Repo
 
 ```bash
-git clone https://github.com/yourusername/fuel-alert.git
-cd fuel-alert
+git clone https://github.com/microchimp/FillYaTank.git
+cd FillYaTank
 ```
 
 ### 2. Set Up GitHub Secrets
@@ -44,17 +46,12 @@ Add these secrets:
 |------|-------------|
 | `RESEND_API_KEY` | Your Resend API key |
 | `FROM_EMAIL` | Sender email (must be verified in Resend) |
-| `SITE_URL` | Your GitHub Pages URL (e.g., `https://yourusername.github.io/fuel-alert`) |
+| `SITE_URL` | Your site URL (e.g., `https://fillyatank.app`) |
 | `SECRET_KEY` | Random string for token generation (use `openssl rand -hex 32`) |
 
-### 3. Enable GitHub Pages
+### 3. Host the Site
 
-1. Go to repo Settings → Pages
-2. Source: "Deploy from a branch"
-3. Branch: `main`, folder: `/ (root)`
-4. Save
-
-Your site will be live at `https://yourusername.github.io/fuel-alert`
+The site is static (`index.html`, `confirm.html`, `unsubscribe.html`, `styles.css`, `data/`). It's hosted on Cloudflare Pages connected to this repo, which also applies the security headers in `_headers`. Any static host works, but `_headers` is Cloudflare-specific.
 
 ### 4. Deploy the Signup Worker
 
@@ -90,10 +87,12 @@ python main.py
 ## File Structure
 
 ```
-fuel-alert/
+FillYaTank/
 ├── main.py                 # Scraper and email sender
 ├── requirements.txt        # Pinned Python dependencies
 ├── index.html              # Main website with dashboard
+├── styles.css              # Shared site styles
+├── favicon.svg / og-image.png  # Icon and social share image
 ├── confirm.html            # Subscription confirmation page
 ├── unsubscribe.html        # Unsubscribe page
 ├── _headers                # Security headers (Cloudflare Pages)

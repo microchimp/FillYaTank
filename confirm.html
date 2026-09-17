@@ -1,185 +1,99 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en-AU">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Confirm Subscription — Fuel Alert</title>
-    
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
-    
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Space Grotesk', -apple-system, sans-serif;
-            background: #0a0a0a;
-            color: #fafafa;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 24px;
-        }
-        
-        .container {
-            max-width: 400px;
-            text-align: center;
-        }
-        
-        .icon {
-            width: 64px;
-            height: 64px;
-            margin: 0 auto 24px;
-            color: #22c55e;
-        }
-        
-        .icon.error {
-            color: #ef4444;
-        }
-        
-        .icon.loading {
-            animation: spin 1s linear infinite;
-        }
-        
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-        
-        h1 {
-            font-size: 24px;
-            font-weight: 600;
-            margin-bottom: 12px;
-        }
-        
-        p {
-            color: #737373;
-            line-height: 1.6;
-            margin-bottom: 24px;
-        }
-        
-        a {
-            color: #22c55e;
-            text-decoration: none;
-        }
-        
-        a:hover {
-            text-decoration: underline;
-        }
-        
-        .hidden {
-            display: none;
-        }
-    </style>
+    <meta name="robots" content="noindex">
+    <title>Confirm your subscription — FillYaTank</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="/styles.css">
 </head>
-<body>
-    <div class="container">
-        <!-- Loading state -->
-        <div id="loading">
-            <svg class="icon loading" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="10" stroke-opacity="0.25"/>
-                <path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"/>
-            </svg>
-            <h1>Confirming...</h1>
-            <p>Please wait while we confirm your subscription.</p>
+<body class="simple-page">
+    <header class="site-header">
+        <div class="wrap">
+            <a class="brand" href="/" aria-label="FillYaTank home">
+                <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true">
+                    <rect width="32" height="32" rx="8" fill="#1e7d46"/>
+                    <path d="M5 10 L14 20 L16.5 8 L25 21" fill="none" stroke="#fff" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"/>
+                    <circle cx="25" cy="21" r="3.4" fill="#fff"/>
+                </svg>
+                FillYaTank
+            </a>
         </div>
-        
-        <!-- Success state -->
-        <div id="success" class="hidden">
-            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="10"/>
-                <path d="M9 12l2 2 4-4"/>
-            </svg>
-            <h1>You're subscribed!</h1>
-            <p>You'll only hear from us when prices hit bottom.<br>That's it. No spam.</p>
-            <p><a href="./">← Back to Fuel Alert</a></p>
+    </header>
+
+    <main class="simple-main">
+        <div class="simple-card" role="status" aria-live="polite">
+            <div id="loading">
+                <svg class="state-icon busy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10" stroke-opacity="0.25"/><path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"/></svg>
+                <h1>Confirming…</h1>
+                <p>Just a moment while we confirm your subscription.</p>
+            </div>
+
+            <div id="success" class="hidden">
+                <svg class="state-icon ok" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M8 12.5l3 3 5-6"/></svg>
+                <h1>You're subscribed!</h1>
+                <p id="successText">We'll email you when petrol prices in your city hit the bottom of the cycle.</p>
+                <p>That's the only email you'll get. Add <strong>alerts@fillyatank.app</strong> to your contacts so it doesn't land in spam.</p>
+                <a class="button" href="/#today">See where each city is today</a>
+            </div>
+
+            <div id="error" class="hidden">
+                <svg class="state-icon bad" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6M9 9l6 6"/></svg>
+                <h1>That link didn't work</h1>
+                <p id="errorMessage">This confirmation link is invalid or has expired.</p>
+                <p>Links expire after 1 hour. Signing up again only takes a few seconds.</p>
+                <a class="button" href="/">Sign up again</a>
+            </div>
         </div>
-        
-        <!-- Error state -->
-        <div id="error" class="hidden">
-            <svg class="icon error" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="10"/>
-                <path d="M15 9l-6 6M9 9l6 6"/>
-            </svg>
-            <h1>Something went wrong</h1>
-            <p id="errorMessage">Invalid or expired confirmation link.</p>
-            <p><a href="./">← Back to Fuel Alert</a></p>
-        </div>
-    </div>
-    
+    </main>
+
     <script>
-        /*
-         * STATIC SITE CONFIRMATION HANDLER
-         * 
-         * For a fully static GitHub Pages deployment, this page
-         * handles confirmation via a serverless function.
-         * 
-         * Options for the backend:
-         * 1. Vercel serverless function
-         * 2. Netlify function
-         * 3. Cloudflare Worker
-         * 4. Manual confirmation (check form submissions, run script)
-         * 
-         * Replace API_ENDPOINT with your actual endpoint.
-         */
-        
         const API_ENDPOINT = 'https://fillyatank-signup.p-m-palaniswami.workers.dev';
-        
+        const CITY_NAMES = { sydney: 'Sydney', melbourne: 'Melbourne', brisbane: 'Brisbane', adelaide: 'Adelaide', perth: 'Perth' };
+
+        function show(id) {
+            ['loading', 'success', 'error'].forEach(state => {
+                document.getElementById(state).classList.toggle('hidden', state !== id);
+            });
+        }
+
+        function showError(message) {
+            document.getElementById('errorMessage').textContent = message;
+            show('error');
+        }
+
         async function handleConfirmation() {
             const params = new URLSearchParams(window.location.search);
             const email = params.get('email');
             const city = params.get('city');
             const token = params.get('token');
             const ts = params.get('ts') || '';
-            
+
             if (!email || !city || !token) {
-                showError('Missing confirmation parameters.');
+                showError('This confirmation link is incomplete.');
                 return;
             }
-            
-            if (API_ENDPOINT) {
-                // Call serverless function
-                try {
-                    const response = await fetch(
-                        `${API_ENDPOINT}?action=confirm&email=${encodeURIComponent(email)}&city=${encodeURIComponent(city)}&ts=${encodeURIComponent(ts)}&token=${encodeURIComponent(token)}`
-                    );
-                    
-                    if (response.ok) {
-                        showSuccess();
-                    } else {
-                        const data = await response.json();
-                        showError(data.message || 'Confirmation failed.');
+
+            try {
+                const response = await fetch(
+                    `${API_ENDPOINT}?action=confirm&email=${encodeURIComponent(email)}&city=${encodeURIComponent(city)}&ts=${encodeURIComponent(ts)}&token=${encodeURIComponent(token)}`
+                );
+                if (response.ok) {
+                    if (CITY_NAMES[city]) {
+                        document.getElementById('successText').textContent =
+                            `We'll email you when petrol prices in ${CITY_NAMES[city]} hit the bottom of the cycle.`;
                     }
-                } catch (e) {
-                    showError('Unable to confirm. Please try again.');
+                    show('success');
+                } else {
+                    const data = await response.json().catch(() => ({}));
+                    showError(data.message || 'This confirmation link is invalid or has expired.');
                 }
-            } else {
-                // No API endpoint - show manual confirmation message
-                // In production, you'd have an actual endpoint
-                showSuccess();
-                document.querySelector('#success p').innerHTML = 
-                    'Your confirmation has been received.<br>You\'ll be added to the list shortly.';
+            } catch (e) {
+                showError("We couldn't reach the server. Please check your connection and reload this page.");
             }
         }
-        
-        function showSuccess() {
-            document.getElementById('loading').classList.add('hidden');
-            document.getElementById('success').classList.remove('hidden');
-        }
-        
-        function showError(message) {
-            document.getElementById('loading').classList.add('hidden');
-            document.getElementById('errorMessage').textContent = message;
-            document.getElementById('error').classList.remove('hidden');
-        }
-        
-        // Run on load
+
         handleConfirmation();
     </script>
 </body>
