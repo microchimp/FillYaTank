@@ -15,8 +15,7 @@
 const CITIES = ["sydney", "melbourne", "brisbane", "adelaide", "perth"];
 const ALLOWED_ORIGINS = [
   "https://fillyatank.app",
-  "https://fillyatank.pages.dev",
-  "https://microchimp.github.io"
+  "https://fillyatank.pages.dev"
 ];
 const CONFIRM_LINK_MAX_AGE = 60 * 60; // seconds
 const CONFIRM_RESEND_COOLDOWN = 600; // seconds between confirmation emails per address
