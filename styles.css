@@ -188,19 +188,7 @@ p {
   line-height: 1.5;
   color: #3a423d;
   max-width: 30em;
-  margin-bottom: 10px;
-}
-
-.savings {
-  font-size: 17px;
-  line-height: 1.5;
-  color: #3a423d;
-  max-width: 32em;
   margin-bottom: 28px;
-}
-
-.savings strong {
-  color: var(--accent-text);
 }
 
 /* Signup card */
