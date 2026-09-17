@@ -1,0 +1,18 @@
+name = "fillyatank-signup"
+main = "src/index.js"
+compatibility_date = "2026-09-01"
+
+[vars]
+SITE_URL = "https://fillyatank.app"
+FROM_EMAIL = "alerts@fillyatank.app"
+
+# Subscribers are stored as keys "<city>:<email>".
+# Create with: npx wrangler kv namespace create SUBSCRIBERS  (then paste the id below)
+[[kv_namespaces]]
+binding = "SUBSCRIBERS"
+id = "05eb6feea11245499e7dc17cc4f3c8bd"
+
+# Secrets (set with `npx wrangler secret put <NAME>`, never commit):
+#   RESEND_API_KEY - Resend API key
+#   SECRET_KEY     - HMAC key for confirm/unsubscribe tokens; must match the GitHub secret
+#   ADMIN_TOKEN    - bearer token main.py uses to read the subscriber list; must match the GitHub secret

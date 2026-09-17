@@ -11,10 +11,12 @@ import json
 import os
 import re
 import hashlib
+import hmac
 import base64
 from datetime import datetime
 from html import unescape
 from pathlib import Path
+from urllib.parse import quote
 
 import requests
 from bs4 import BeautifulSoup
@@ -27,6 +29,8 @@ RESEND_API_KEY = os.environ.get("RESEND_API_KEY")
 FROM_EMAIL = os.environ.get("FROM_EMAIL", "alerts@yourdomain.com")
 SITE_URL = os.environ.get("SITE_URL", "https://yourusername.github.io/fuel-alert")
 SECRET_KEY = os.environ.get("SECRET_KEY", "change-this-in-production")
+WORKER_URL = os.environ.get("WORKER_URL", "https://fillyatank-signup.p-m-palaniswami.workers.dev")
+ADMIN_TOKEN = os.environ.get("ADMIN_TOKEN")
 
 
 def fetch_accc_page() -> str:
@@ -168,7 +172,15 @@ def save_state(state: dict) -> None:
 
 
 def load_subscribers() -> dict[str, list[str]]:
-    """Load subscribers grouped by city."""
+    """Load subscribers grouped by city from the signup Worker (falls back to local file)."""
+    if ADMIN_TOKEN:
+        response = requests.get(
+            f"{WORKER_URL}/?action=subscribers",
+            headers={"Authorization": f"Bearer {ADMIN_TOKEN}"},
+            timeout=30
+        )
+        response.raise_for_status()
+        return response.json()
     subs_file = DATA_DIR / "subscribers.json"
     if subs_file.exists():
         with open(subs_file) as f:
@@ -178,15 +190,15 @@ def load_subscribers() -> dict[str, list[str]]:
 
 def generate_token(email: str, city: str, action: str = "unsubscribe") -> str:
     """Generate a secure token for email actions."""
-    data = f"{email}|{city}|{action}|{SECRET_KEY}"
-    hash_bytes = hashlib.sha256(data.encode()).digest()[:16]
+    data = f"{email}|{city}|{action}"
+    hash_bytes = hmac.new(SECRET_KEY.encode(), data.encode(), hashlib.sha256).digest()[:16]
     return base64.urlsafe_b64encode(hash_bytes).decode().rstrip("=")
 
 
 def verify_token(email: str, city: str, token: str, action: str = "unsubscribe") -> bool:
     """Verify a token is valid."""
     expected = generate_token(email, city, action)
-    return token == expected
+    return hmac.compare_digest(token, expected)
 
 
 def send_email(to_email: str, subject: str, html_body: str) -> bool:
@@ -222,7 +234,7 @@ def send_buy_alert(email: str, city: str, tip_text: str) -> bool:
     """Send the BUY alert email."""
     city_display = city.capitalize()
     unsubscribe_token = generate_token(email, city)
-    unsubscribe_url = f"{SITE_URL}/unsubscribe.html?email={email}&city={city}&token={unsubscribe_token}"
+    unsubscribe_url = f"{SITE_URL}/unsubscribe.html?email={quote(email)}&city={city}&token={unsubscribe_token}"
     
     subject = f"⛽ {city_display} petrol prices are at the bottom"
     

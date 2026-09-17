@@ -30,6 +30,7 @@ jobs:
           FROM_EMAIL: ${{ secrets.FROM_EMAIL }}
           SITE_URL: ${{ secrets.SITE_URL }}
           SECRET_KEY: ${{ secrets.SECRET_KEY }}
+          ADMIN_TOKEN: ${{ secrets.ADMIN_TOKEN }}
         run: |
           python main.py
       
