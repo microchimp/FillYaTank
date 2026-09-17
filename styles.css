@@ -169,23 +169,12 @@ p {
 /* Hero */
 
 .hero {
-  padding: 28px 0 56px;
+  padding: 36px 0 56px;
 }
 
 .hero-grid {
   display: grid;
   gap: 40px;
-}
-
-.eyebrow {
-  display: inline-block;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--accent-text);
-  background: var(--accent-soft);
-  padding: 4px 12px;
-  border-radius: 999px;
-  margin-bottom: 18px;
 }
 
 .hero h1 {
@@ -199,21 +188,19 @@ p {
   line-height: 1.5;
   color: #3a423d;
   max-width: 30em;
-  margin-bottom: 14px;
+  margin-bottom: 10px;
 }
 
 .savings {
-  display: inline-block;
-  font-size: 16px;
+  font-size: 17px;
   line-height: 1.5;
-  color: var(--text);
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-left: 4px solid var(--accent);
-  border-radius: var(--radius-sm);
-  padding: 10px 14px;
-  max-width: 34em;
-  margin-bottom: 24px;
+  color: #3a423d;
+  max-width: 32em;
+  margin-bottom: 28px;
+}
+
+.savings strong {
+  color: var(--accent-text);
 }
 
 /* Signup card */
@@ -408,7 +395,7 @@ p {
 }
 
 .email-body .email-cta {
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 750;
   color: var(--accent);
   margin: 4px 0 12px;
@@ -599,6 +586,8 @@ p {
 
 .cycle-points strong {
   display: block;
+  font-size: 19px;
+  margin-bottom: 2px;
 }
 
 .cycle-points span {
@@ -686,7 +675,7 @@ p {
 
 .city-name {
   font-weight: 700;
-  font-size: 20px;
+  font-size: 18px;
   letter-spacing: -0.01em;
 }
 
@@ -694,10 +683,10 @@ p {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  font-size: 17px;
+  font-size: 15px;
   font-weight: 700;
   border-radius: 999px;
-  padding: 7px 16px;
+  padding: 6px 14px;
   white-space: nowrap;
   background: var(--surface-muted);
   color: var(--text-muted);
@@ -755,7 +744,7 @@ p {
   cursor: pointer;
   list-style: none;
   font-weight: 650;
-  font-size: 18px;
+  font-size: 17px;
   padding: 18px 36px 18px 0;
   position: relative;
 }
@@ -958,22 +947,9 @@ body {
 .cta-band h2 {
   font-family: var(--hand);
   font-weight: 700;
-  font-size: clamp(42px, 7vw, 58px);
+  font-size: clamp(38px, 6vw, 48px);
   letter-spacing: 0;
   line-height: 1.05;
-}
-
-.eyebrow {
-  font-family: var(--hand);
-  font-size: 26px;
-  font-weight: 700;
-  line-height: 1.1;
-  color: var(--text);
-  background: var(--sticky);
-  padding: 4px 14px 6px;
-  border-radius: 4px;
-  transform: rotate(-2.5deg);
-  box-shadow: 0 2px 6px rgba(20, 30, 25, 0.12);
 }
 
 .mark-underline {
@@ -983,7 +959,7 @@ body {
 .preview-label {
   position: relative;
   font-family: var(--hand);
-  font-size: 30px;
+  font-size: 26px;
   font-weight: 700;
   color: var(--pencil);
   margin-bottom: 14px;
@@ -1010,11 +986,12 @@ body {
 
 .sticky-note {
   position: relative;
-  margin: 22px 0 0 auto;
-  max-width: 330px;
-  padding: 18px 22px 20px;
+  width: fit-content;
+  margin: 20px 12px 0 auto;
+  padding: 16px 28px 18px;
   font-family: var(--hand);
-  font-size: 28px;
+  font-weight: 700;
+  font-size: 32px;
   line-height: 1.15;
   color: var(--text);
   background: var(--sticky);
@@ -1042,7 +1019,7 @@ body {
 
 .margin-note {
   font-family: var(--hand);
-  font-size: 26px;
+  font-size: 24px;
   font-weight: 700;
   color: var(--pencil);
   line-height: 1;
@@ -1075,6 +1052,9 @@ body {
   background: transparent;
   border: 2.5px solid var(--accent);
   border-radius: 55% 45% 50% 50% / 50% 55% 45% 50%;
+  /* Caveat's digits sit low and a little right; nudge them to look centred */
+  line-height: 1;
+  padding: 0 3px 5px 0;
 }
 
 .cycle-points .num.good {
