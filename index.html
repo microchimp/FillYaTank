@@ -8,7 +8,7 @@
     <link rel="canonical" href="https://fillyatank.app/">
     <meta name="theme-color" content="#fafaf7">
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-    <link rel="stylesheet" href="/styles.css?v=5">
+    <link rel="stylesheet" href="/styles.css?v=7">
 
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="FillYaTank">
@@ -105,7 +105,7 @@
                             <span class="email-footer">Unsubscribe</span>
                         </div>
                     </div>
-                    <p class="preview-caption">No newsletters, no marketing. Just this, when it's time.</p>
+                    <p class="preview-caption"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="#1e7d46"/><path d="M7 12.5l3.2 3.2L17.2 8.5" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span><strong>No newsletters, no marketing.</strong> Just this, when it's time.</span></p>
                 </div>
             </div>
         </section>
@@ -194,19 +194,30 @@
         <section class="section tone-white" id="today" aria-labelledby="today-title">
             <div class="wrap">
                 <h2 id="today-title">Where each city is today</h2>
-                <p class="section-intro">Based on the ACCC's latest buying tip for each city.</p>
+                <p class="section-intro">Based on the ACCC's latest buying tip. Hover over or tap a city to see its average petrol price over the last 45 days.</p>
 
-                <div class="status-card">
-                    <ul class="status-list">
-                        <li class="status-row"><span class="city-name">Sydney</span><span class="pill" data-city="sydney">Checking…</span></li>
-                        <li class="status-row"><span class="city-name">Melbourne</span><span class="pill" data-city="melbourne">Checking…</span></li>
-                        <li class="status-row"><span class="city-name">Brisbane</span><span class="pill" data-city="brisbane">Checking…</span></li>
-                        <li class="status-row"><span class="city-name">Adelaide</span><span class="pill" data-city="adelaide">Checking…</span></li>
-                        <li class="status-row"><span class="city-name">Perth</span><span class="pill" data-city="perth">Checking…</span></li>
-                    </ul>
-                    <div class="status-footer">
-                        <span><strong>Fill up now</strong> = at the bottom · <strong>Hold off</strong> = not yet</span>
-                        <span id="lastChecked"></span>
+                <div class="status-layout">
+                    <div class="status-card">
+                        <ul class="status-list">
+                        <li><button class="status-row" type="button" data-city="sydney" aria-controls="cityChart"><span class="city-name">Sydney</span><span class="pill" data-city="sydney">Checking…</span></button></li>
+                        <li><button class="status-row" type="button" data-city="melbourne" aria-controls="cityChart"><span class="city-name">Melbourne</span><span class="pill" data-city="melbourne">Checking…</span></button></li>
+                        <li><button class="status-row" type="button" data-city="brisbane" aria-controls="cityChart"><span class="city-name">Brisbane</span><span class="pill" data-city="brisbane">Checking…</span></button></li>
+                        <li><button class="status-row" type="button" data-city="adelaide" aria-controls="cityChart"><span class="city-name">Adelaide</span><span class="pill" data-city="adelaide">Checking…</span></button></li>
+                        <li><button class="status-row" type="button" data-city="perth" aria-controls="cityChart"><span class="city-name">Perth</span><span class="pill" data-city="perth">Checking…</span></button></li>
+                        </ul>
+                        <div class="status-footer">
+                            <span><strong>Fill up now</strong> = at the bottom · <strong>Hold off</strong> = not yet</span>
+                            <span id="lastChecked"></span>
+                        </div>
+                    </div>
+
+                    <div class="chart-panel" id="cityChart" aria-live="polite">
+                        <div class="chart-panel-head">
+                            <h3 id="chartCity">Price history</h3>
+                            <span class="chart-latest" id="chartLatest"></span>
+                        </div>
+                        <div class="chart-body" id="chartBody"><p class="chart-empty">Loading prices…</p></div>
+                        <p class="chart-source" id="chartSource"></p>
                     </div>
                 </div>
 
@@ -384,7 +395,123 @@
             }
         });
 
+        const STATE_SOURCES = {
+            sydney: "NSW's", melbourne: "Victoria's", brisbane: "Queensland's", adelaide: "South Australia's", perth: "WA's"
+        };
+        let priceData = null;
+        let selectedCity = null;
+
+        function formatDay(iso, opts) {
+            return new Date(iso + 'T00:00:00').toLocaleDateString('en-AU', opts);
+        }
+
+        function smoothPath(points) {
+            // Monotone cubic interpolation: smooth without overshooting peaks and troughs
+            const n = points.length;
+            if (n < 2) return '';
+            const dx = [], slope = [], tangent = new Array(n).fill(0);
+            for (let i = 0; i < n - 1; i++) {
+                dx.push(points[i + 1][0] - points[i][0]);
+                slope.push((points[i + 1][1] - points[i][1]) / dx[i]);
+            }
+            tangent[0] = slope[0];
+            tangent[n - 1] = slope[n - 2];
+            for (let i = 1; i < n - 1; i++) {
+                tangent[i] = slope[i - 1] * slope[i] <= 0 ? 0 : (slope[i - 1] + slope[i]) / 2;
+            }
+            for (let i = 0; i < n - 1; i++) {
+                if (slope[i] === 0) { tangent[i] = tangent[i + 1] = 0; continue; }
+                const a = tangent[i] / slope[i], b = tangent[i + 1] / slope[i], h = a * a + b * b;
+                if (h > 9) { const t = 3 / Math.sqrt(h); tangent[i] = t * a * slope[i]; tangent[i + 1] = t * b * slope[i]; }
+            }
+            let d = `M${points[0][0].toFixed(1)},${points[0][1].toFixed(1)}`;
+            for (let i = 0; i < n - 1; i++) {
+                const [x0, y0] = points[i], [x1, y1] = points[i + 1];
+                d += ` C${(x0 + dx[i] / 3).toFixed(1)},${(y0 + tangent[i] * dx[i] / 3).toFixed(1)} ${(x1 - dx[i] / 3).toFixed(1)},${(y1 - tangent[i + 1] * dx[i] / 3).toFixed(1)} ${x1.toFixed(1)},${y1.toFixed(1)}`;
+            }
+            return d;
+        }
+
+        function renderChart(city) {
+            selectedCity = city;
+            document.querySelectorAll('.status-row').forEach(row => {
+                row.classList.toggle('selected', row.dataset.city === city);
+                row.setAttribute('aria-pressed', row.dataset.city === city ? 'true' : 'false');
+            });
+
+            const name = CITY_NAMES[city];
+            const body = document.getElementById('chartBody');
+            const latest = document.getElementById('chartLatest');
+            const source = document.getElementById('chartSource');
+            document.getElementById('chartCity').textContent = `${name} petrol prices`;
+
+            const cityData = priceData && priceData.cities && priceData.cities[city];
+            if (!cityData || !cityData.days || cityData.days.length < 2) {
+                latest.textContent = '';
+                source.textContent = '';
+                body.innerHTML = '';
+                const empty = document.createElement('p');
+                empty.className = 'chart-empty';
+                empty.textContent = `Price history for ${name} is coming soon. We're connecting to ${STATE_SOURCES[city]} official fuel price data.`;
+                body.appendChild(empty);
+                return;
+            }
+
+            const days = cityData.days;
+            const values = days.map(d => d[1]);
+            const min = Math.min(...values), max = Math.max(...values);
+            const lo = Math.floor((min - 2) / 5) * 5, hi = Math.ceil((max + 2) / 5) * 5;
+            const W = 560, H = 260, left = 46, right = 16, top = 16, bottom = 34;
+            const x = i => left + (W - left - right) * i / (days.length - 1);
+            const y = v => top + (H - top - bottom) * (hi - v) / (hi - lo);
+            const points = days.map((d, i) => [x(i), y(d[1])]);
+            const line = smoothPath(points);
+            const area = `${line} L${x(days.length - 1).toFixed(1)},${H - bottom} L${left},${H - bottom} Z`;
+
+            const ticks = [lo, (lo + hi) / 2, hi];
+            const grid = ticks.map(t => `<line class="pc-grid" x1="${left}" x2="${W - right}" y1="${y(t)}" y2="${y(t)}"/><text class="pc-axis" x="${left - 8}" y="${y(t) + 5}" text-anchor="end">${Math.round(t)}</text>`).join('');
+            const first = formatDay(days[0][0], { day: 'numeric', month: 'short' });
+            const last = formatDay(days[days.length - 1][0], { day: 'numeric', month: 'short' });
+            const [lx, ly] = points[points.length - 1];
+
+            body.innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${name} average unleaded price over the last ${days.length} days, from ${values[0]} to ${values[values.length - 1]} cents per litre">
+                ${grid}
+                <path class="pc-area" d="${area}"/>
+                <path class="pc-line" d="${line}"/>
+                <circle class="pc-dot" cx="${lx.toFixed(1)}" cy="${ly.toFixed(1)}" r="6"/>
+                <text class="pc-axis" x="${left}" y="${H - 8}">${first}</text>
+                <text class="pc-axis" x="${W - right}" y="${H - 8}" text-anchor="end">${last}</text>
+            </svg>`;
+
+            latest.textContent = `${values[values.length - 1].toFixed(1)}¢/L on ${formatDay(days[days.length - 1][0], { weekday: 'short', day: 'numeric', month: 'short' })}`;
+            source.textContent = `Average regular unleaded price across ${name}, per day. Source: ${cityData.source}.`;
+        }
+
+        async function loadPrices() {
+            try {
+                const response = await fetch('/data/prices.json', { cache: 'no-store' });
+                priceData = response.ok ? await response.json() : null;
+            } catch (e) {
+                priceData = null;
+            }
+            const withData = Object.keys(CITY_NAMES).filter(c => priceData && priceData.cities && priceData.cities[c]);
+            renderChart(selectedCity || withData[0] || 'sydney');
+        }
+
+        document.querySelectorAll('.status-row').forEach(row => {
+            const select = () => { if (selectedCity !== row.dataset.city) renderChart(row.dataset.city); };
+            row.addEventListener('mouseenter', select);
+            row.addEventListener('focus', select);
+            row.addEventListener('click', () => {
+                renderChart(row.dataset.city);
+                if (window.matchMedia('(max-width: 899px)').matches) {
+                    document.getElementById('cityChart').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }
+            });
+        });
+
         updateStatus();
+        loadPrices();
 
         // Anonymous view count: no cookies, no identifiers
         navigator.sendBeacon('https://fillyatank-signup.p-m-palaniswami.workers.dev/?action=view');

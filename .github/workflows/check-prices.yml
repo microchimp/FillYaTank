@@ -71,5 +71,7 @@ jobs:
           # disables scheduled workflows after 60 days without any.
           date -u +%Y-%m-%d > data/last_run.txt
           git add data/state.json data/last_run.txt data/wordings.json
-          git diff --staged --quiet || git commit -m "Update price state [skip ci]"
+          git diff --staged --quiet && exit 0
+          git commit -m "Update price state [skip ci]"
+          git pull --rebase
           git push
