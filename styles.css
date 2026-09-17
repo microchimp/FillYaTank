@@ -1083,9 +1083,29 @@ p {
 /* Scratchpad style: handwriting for headings and notes, doodles       */
 /* ------------------------------------------------------------------ */
 
+/* One continuous dot grid across every section: fixed so dots line up at section edges */
+body,
+.tone-white,
+.tone-tint,
+.tone-accent {
+  background-size: 24px 24px;
+  background-attachment: fixed;
+}
+
 body {
   background-image: radial-gradient(#d8dcd3 1.1px, transparent 1.2px);
-  background-size: 24px 24px;
+}
+
+.tone-white {
+  background-image: radial-gradient(#dfe2da 1.1px, transparent 1.2px);
+}
+
+.tone-tint {
+  background-image: radial-gradient(#cdd8c9 1.1px, transparent 1.2px);
+}
+
+.tone-accent {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.16) 1.1px, transparent 1.2px);
 }
 
 .section h2,
