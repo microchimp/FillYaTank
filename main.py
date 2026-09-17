@@ -32,6 +32,11 @@ SECRET_KEY = os.environ.get("SECRET_KEY", "change-this-in-production")
 WORKER_URL = os.environ.get("WORKER_URL", "https://fillyatank-signup.p-m-palaniswami.workers.dev")
 ADMIN_TOKEN = os.environ.get("ADMIN_TOKEN")
 
+# Test mode: force a WAIT -> BUY transition for one city, email only TEST_EMAIL,
+# and leave state.json untouched. Triggered manually from the workflow.
+SIMULATE_BUY_CITY = os.environ.get("SIMULATE_BUY_CITY", "").lower().strip()
+TEST_EMAIL = os.environ.get("TEST_EMAIL", "").lower().strip()
+
 
 def fetch_accc_page() -> str:
     """Fetch the ACCC petrol price cycles page."""
@@ -201,10 +206,16 @@ def verify_token(email: str, city: str, token: str, action: str = "unsubscribe")
     return hmac.compare_digest(token, expected)
 
 
+def mask_email(email: str) -> str:
+    """Hide most of an address for public Actions logs."""
+    local, _, domain = email.partition("@")
+    return f"{local[:1]}***@{domain}"
+
+
 def send_email(to_email: str, subject: str, html_body: str) -> bool:
     """Send an email via Resend API."""
     if not RESEND_API_KEY:
-        print(f"[DRY RUN] Would send to {to_email}: {subject}")
+        print(f"[DRY RUN] Would send to {mask_email(to_email)}: {subject}")
         return True
     
     response = requests.post(
@@ -223,10 +234,10 @@ def send_email(to_email: str, subject: str, html_body: str) -> bool:
     )
     
     if response.status_code == 200:
-        print(f"✓ Sent to {to_email}")
+        print(f"✓ Sent to {mask_email(to_email)}")
         return True
     else:
-        print(f"✗ Failed to send to {to_email}: {response.text}")
+        print(f"✗ Failed to send to {mask_email(to_email)}: {response.text}")
         return False
 
 
@@ -237,6 +248,8 @@ def send_buy_alert(email: str, city: str, tip_text: str) -> bool:
     unsubscribe_url = f"{SITE_URL}/unsubscribe.html?email={quote(email)}&city={city}&token={unsubscribe_token}"
     
     subject = f"⛽ {city_display} petrol prices are at the bottom"
+    if SIMULATE_BUY_CITY:
+        subject = f"[TEST] {subject}"
     
     html_body = f"""
 <!DOCTYPE html>
@@ -275,6 +288,12 @@ def main():
     print(f"Fuel Price Alert - {datetime.now().isoformat()}")
     print("=" * 50)
     
+    if SIMULATE_BUY_CITY:
+        if SIMULATE_BUY_CITY not in CITIES or not TEST_EMAIL:
+            print("Error: simulation needs a valid city and the TEST_EMAIL secret")
+            return 1
+        print(f"🧪 TEST MODE: simulating WAIT → BUY for {SIMULATE_BUY_CITY.capitalize()}")
+    
     # Fetch and parse ACCC page
     print("Fetching ACCC page...")
     try:
@@ -301,6 +320,7 @@ def main():
     print("-" * 30)
     
     transitions = []
+    failures = 0
     
     for city in CITIES:
         tip = tips.get(city, "")
@@ -308,6 +328,9 @@ def main():
         current_state[city] = phase
         
         prev = previous_state.get(city, "UNKNOWN")
+        
+        if city == SIMULATE_BUY_CITY:
+            prev, phase = "WAIT", "BUY"
         
         # Check for WAIT -> BUY transition
         if prev == "WAIT" and phase == "BUY":
@@ -326,8 +349,9 @@ def main():
             short_tip = tip[:80] + "..." if len(tip) > 80 else tip
             print(f"    \"{short_tip}\"")
     
-    # Save current state
-    save_state(current_state)
+    # Save current state (never in test mode)
+    if not SIMULATE_BUY_CITY:
+        save_state(current_state)
     
     # Send alerts for transitions
     if transitions:
@@ -340,10 +364,22 @@ def main():
             
             print(f"\n{city.capitalize()}: {len(city_subs)} subscribers")
             
+            if SIMULATE_BUY_CITY:
+                city_subs = [email for email in city_subs if email == TEST_EMAIL]
+                print(f"  Test mode: sending only to TEST_EMAIL ({len(city_subs)} match)")
+                if not city_subs:
+                    print("  Error: TEST_EMAIL is not subscribed to this city")
+                    return 1
+            
             for email in city_subs:
-                send_buy_alert(email, city, tip)
+                if not send_buy_alert(email, city, tip):
+                    failures += 1
     else:
         print("\nNo transitions detected. No alerts sent.")
+    
+    if failures:
+        print(f"\n✗ {failures} alert(s) failed to send")
+        return 1
     
     print("\n✓ Done")
     return 0
