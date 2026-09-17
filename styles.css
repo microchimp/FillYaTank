@@ -1086,8 +1086,8 @@ body {
 
 .cta-note {
   position: absolute;
-  left: -196px;
-  top: -16px;
+  left: -238px;
+  top: -4px;
   color: #fff;
   transform: rotate(-6deg);
   white-space: nowrap;
@@ -1095,8 +1095,8 @@ body {
 
 .cta-arrow {
   position: absolute;
-  left: -62px;
-  top: 6px;
+  left: -64px;
+  top: -2px;
   stroke: #fff;
 }
 
