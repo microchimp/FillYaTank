@@ -9,7 +9,7 @@
     <meta name="theme-color" content="#fafaf7">
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
     <link rel="preload" href="/fonts/caveat.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="stylesheet" href="/styles.css?v=21">
+    <link rel="stylesheet" href="/styles.css?v=22">
 
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="FillYaTank">
@@ -74,6 +74,7 @@
                         </div>
 
                         <button class="button" type="submit" id="submitBtn">Email me when to fill up</button>
+                        <p class="form-promise">Free. One email per cycle. Unsubscribe in one click.</p>
                         <div class="form-message" id="formMessage" role="status" aria-live="polite"></div>
                     </form>
                 </div>
@@ -139,15 +140,15 @@
                             <!-- 3: bottom of the cycle, we email you -->
                             <circle class="chart-halo" cx="333.4" cy="214.0" r="20"/>
                             <circle class="chart-dot" cx="333.4" cy="214.0" r="9"/>
-                            <line x1="398" y1="200" x2="351" y2="210" stroke="#1e7d46" stroke-width="4" marker-end="url(#arrowhead)"/>
-                            <g transform="translate(398 152)">
-                                <rect x="0" y="0" width="156" height="76" rx="12" fill="#1e7d46"/>
-                                <g transform="translate(12 27)">
+                            <line x1="388" y1="200" x2="351" y2="210" stroke="#1e7d46" stroke-width="4" marker-end="url(#arrowhead)"/>
+                            <g transform="translate(386 146)">
+                                <rect x="0" y="0" width="172" height="84" rx="12" fill="#1e7d46"/>
+                                <g transform="translate(13 31)">
                                     <rect x="0" y="0" width="28" height="21" rx="3" fill="#fff"/>
                                     <path d="M2 3 L14 12 L26 3" fill="none" stroke="#1e7d46" stroke-width="2.4" stroke-linejoin="round"/>
                                 </g>
-                                <text class="chart-callout" x="50" y="33">We email</text>
-                                <text class="chart-callout" x="50" y="58">you here</text>
+                                <text class="chart-callout" x="52" y="37">We email</text>
+                                <text class="chart-callout" x="52" y="68">you here</text>
                             </g>
                         </svg>
                     </figure>
@@ -164,15 +165,15 @@
         <section class="section tone-tint" id="today" aria-labelledby="today-title">
             <div class="wrap">
                 <h2 id="today-title">Current status</h2>
-                <p class="section-intro">Whether each city is at the bottom today, from the ACCC's latest buying tips.</p>
+                <p class="section-intro">Is your city at the bottom today? From the ACCC's latest tips, plus FuelWatch for Perth.</p>
 
                 <div class="status-card">
                     <ul class="status-list">
-                        <li class="status-row"><span class="city-name">Sydney</span><span class="pill" data-city="sydney">Checking…</span></li>
-                        <li class="status-row"><span class="city-name">Melbourne</span><span class="pill" data-city="melbourne">Checking…</span></li>
-                        <li class="status-row"><span class="city-name">Brisbane</span><span class="pill" data-city="brisbane">Checking…</span></li>
-                        <li class="status-row"><span class="city-name">Adelaide</span><span class="pill" data-city="adelaide">Checking…</span></li>
-                        <li class="status-row"><span class="city-name">Perth</span><span class="pill" data-city="perth">Checking…</span></li>
+                        <li class="status-row"><span class="city"><span class="city-name">Sydney</span><span class="city-note" data-note="sydney"></span></span><span class="pill" data-city="sydney">Checking…</span></li>
+                        <li class="status-row"><span class="city"><span class="city-name">Melbourne</span><span class="city-note" data-note="melbourne"></span></span><span class="pill" data-city="melbourne">Checking…</span></li>
+                        <li class="status-row"><span class="city"><span class="city-name">Brisbane</span><span class="city-note" data-note="brisbane"></span></span><span class="pill" data-city="brisbane">Checking…</span></li>
+                        <li class="status-row"><span class="city"><span class="city-name">Adelaide</span><span class="city-note" data-note="adelaide"></span></span><span class="pill" data-city="adelaide">Checking…</span></li>
+                        <li class="status-row"><span class="city"><span class="city-name">Perth</span><span class="city-note" data-note="perth"></span></span><span class="pill" data-city="perth">Checking…</span></li>
                     </ul>
                     <div class="status-footer">
                         <span id="lastChecked"></span>
@@ -192,20 +193,12 @@
                         <p>Yes. No ads, no paid plans, and we never sell or share your email.</p>
                     </details>
                     <details>
-                        <summary>How often will you email me?</summary>
-                        <p>Only when your city hits the bottom: every few weeks in the east, weekly in Perth. Nothing else.</p>
-                    </details>
-                    <details>
                         <summary>Why is there a price cycle at all?</summary>
                         <p>One retailer pushes prices up, others follow, then prices drift down. The ACCC says it isn't driven by costs. Don't like it? <a href="https://www.aph.gov.au/Senators_and_Members/Members" rel="noopener">Tell your MP</a>.</p>
                     </details>
                     <details>
                         <summary>Doesn't PetrolSpy already do this?</summary>
                         <p>Sort of. PetrolSpy shows prices, but you have to check it and it has ads. We just email you when it matters.</p>
-                    </details>
-                    <details>
-                        <summary>Where does the information come from?</summary>
-                        <p>ACCC buying tips, checked every weekday, plus FuelWatch's next-day prices for Perth. We're not affiliated with either.</p>
                     </details>
                     <details>
                         <summary>How long do I have to fill up?</summary>
@@ -218,10 +211,6 @@
                     <details>
                         <summary>What do you store about me?</summary>
                         <p>Just your email and city. No tracking cookies. Visits are counted anonymously.</p>
-                    </details>
-                    <details>
-                        <summary>How do I unsubscribe?</summary>
-                        <p>One click, from any email.</p>
                     </details>
                 </div>
             </div>
@@ -261,29 +250,52 @@
             }
         }
 
-        async function updateStatus() {
-            const [stateText, lastRun] = await Promise.all([
-                fetchText('/data/state.json'),
-                fetchText('/data/last_run.txt')
-            ]);
+        function isoDate(date, timeZone) {
+            return date.toLocaleDateString('en-CA', { timeZone }); // YYYY-MM-DD
+        }
 
-            let state = null;
-            try { state = JSON.parse(stateText); } catch (e) { /* leave null */ }
+        async function updateStatus() {
+            const [stateText, lastRun, tipsText, perthText] = await Promise.all([
+                fetchText('/data/state.json'),
+                fetchText('/data/last_run.txt'),
+                fetchText('/data/tips.json'),
+                fetchText('/data/perth_alert.json')
+            ]);
+            const parse = text => { try { return JSON.parse(text); } catch (e) { return null; } };
+            const state = parse(stateText) || {};
+            const tips = parse(tipsText) || {};
+            const perthAlert = parse(perthText) || {};
+
+            // Perth alerts come from FuelWatch's next-day prices: green on the day before a jump
+            const perthToday = isoDate(new Date(), 'Australia/Perth');
+            const perthTomorrow = new Date(perthToday + 'T12:00:00Z');
+            perthTomorrow.setUTCDate(perthTomorrow.getUTCDate() + 1);
+            const perthJumpTomorrow = perthAlert.last_alert_for === perthTomorrow.toISOString().slice(0, 10);
 
             const buyCities = [];
             document.querySelectorAll('.pill[data-city]').forEach(pill => {
-                const phase = state && state[pill.dataset.city];
+                const city = pill.dataset.city;
+                const note = document.querySelector(`.city-note[data-note="${city}"]`);
+                let phase = state[city];
+                let noteText = tips[city] || '';
+                let label = 'Fill up now';
+                if (city === 'perth' && perthJumpTomorrow) {
+                    phase = 'BUY';
+                    label = 'Fill up today';
+                    noteText = 'Prices jump tomorrow (FuelWatch)';
+                }
                 pill.classList.remove('buy', 'wait');
                 if (phase === 'BUY') {
                     pill.classList.add('buy');
-                    pill.textContent = 'Fill up now';
-                    buyCities.push(CITY_NAMES[pill.dataset.city]);
+                    pill.textContent = label;
+                    buyCities.push(city);
                 } else if (phase === 'WAIT') {
                     pill.classList.add('wait');
                     pill.textContent = 'Hold off';
                 } else {
                     pill.textContent = 'Unavailable';
                 }
+                if (note) note.textContent = noteText;
             });
 
             const lastChecked = document.getElementById('lastChecked');
@@ -293,10 +305,12 @@
             }
 
             if (buyCities.length) {
-                const list = buyCities.length === 1 ? buyCities[0]
-                    : buyCities.slice(0, -1).join(', ') + ' and ' + buyCities[buyCities.length - 1];
-                document.getElementById('buyBannerText').textContent =
-                    `Right now: ${list} ${buyCities.length === 1 ? 'is' : 'are'} at the bottom of the price cycle. A good time to fill up.`;
+                const names = buyCities.map(c => CITY_NAMES[c]);
+                const list = names.length === 1 ? names[0] : names.slice(0, -1).join(', ') + ' and ' + names[names.length - 1];
+                const text = buyCities.length === 1 && buyCities[0] === 'perth' && perthJumpTomorrow
+                    ? 'Perth prices jump tomorrow. Fill up today!'
+                    : `${list} ${names.length === 1 ? 'is' : 'are'} at the bottom of the price cycle. Time to fill ya tank!`;
+                document.getElementById('buyBannerText').textContent = text;
                 document.getElementById('buyBanner').classList.remove('hidden');
             }
         }
@@ -341,7 +355,9 @@
                     headers: { 'Accept': 'application/json' }
                 });
                 const data = await response.json().catch(() => ({}));
-                if (response.ok) {
+                if (response.ok && data.alreadySent) {
+                    show('success', data.message);
+                } else if (response.ok) {
                     const city = CITY_NAMES[form.city.value];
                     show('success', `Nearly done! Check your inbox and click the link to confirm your ${city} alerts.`);
                     celebrate(button);

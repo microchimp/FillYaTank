@@ -2,8 +2,11 @@ name: Perth Price Jump Alert
 
 on:
   schedule:
-    # Daily at 07:00 UTC = 3pm AWST, after FuelWatch publishes tomorrow's prices (2:30pm)
+    # 3pm AWST (07:00 UTC), after FuelWatch publishes tomorrow's prices at 2:30pm,
+    # and a 4:30pm retry (08:30 UTC) in case publishing runs late. Alerts are
+    # de-duplicated, so a second run never double-sends.
     - cron: '0 7 * * *'
+    - cron: '30 8 * * *'
   workflow_dispatch:
     inputs:
       simulate:

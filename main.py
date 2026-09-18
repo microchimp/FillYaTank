@@ -298,6 +298,21 @@ def load_state() -> dict:
     return {city: "UNKNOWN" for city in CITIES}
 
 
+def short_tip(tip_text: str) -> str:
+    """First clause of an ACCC tip, for the site: 'prices have increased motorists ...' -> 'Prices have increased'."""
+    text = normalise_tip(tip_text)
+    text = re.split(r"[.;,]| motorists | if | now is | we encourage ", text)[0]
+    text = re.sub(r"^while ", "", " ".join(text.split()))
+    return text[:1].upper() + text[1:] if text else ""
+
+
+def save_tips(tips: dict[str, str]) -> None:
+    """Short ACCC wording per city, shown under each city on the site."""
+    DATA_DIR.mkdir(exist_ok=True)
+    with open(DATA_DIR / "tips.json", "w") as f:
+        json.dump({city: short_tip(tips.get(city, "")) for city in CITIES}, f, indent=2)
+
+
 def save_state(state: dict) -> None:
     """Save the current state to file."""
     DATA_DIR.mkdir(exist_ok=True)
@@ -629,6 +644,7 @@ def main():
     if not SIMULATE_BUY_CITY:
         save_state(current_state)
         save_wordings(wordings)
+        save_tips(tips)
     
     # Send alerts for transitions
     if transitions:

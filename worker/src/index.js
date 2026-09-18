@@ -2,7 +2,7 @@
  * FillYaTank Signup Worker
  *
  * POST /                                        signup form -> sends confirmation email
- * GET  /?action=confirm&email&city&ts&token      adds subscriber (link valid 1 hour)
+ * GET  /?action=confirm&email&city&ts&token      adds subscriber (link valid 24 hours)
  * GET  /?action=unsubscribe&email&city&token     removes subscriber
  * POST /?action=unsubscribe&email&city&token     RFC 8058 one-click unsubscribe
  * GET  /?action=subscribers (Bearer ADMIN_TOKEN) -> {city: [emails]} for main.py
@@ -21,7 +21,7 @@ const ALLOWED_ORIGINS = [
   "https://fillyatank.app",
   "https://fillyatank.pages.dev"
 ];
-const CONFIRM_LINK_MAX_AGE = 60 * 60; // seconds
+const CONFIRM_LINK_MAX_AGE = 24 * 60 * 60; // seconds
 const CONFIRM_RESEND_COOLDOWN = 600; // seconds between confirmation emails per address
 const CLASSIFY_MODEL = "@cf/meta/llama-3.1-8b-instruct-fp8";
 const CLASSIFY_PROMPT = `You classify Australian ACCC petrol "buying tips" for one city.
@@ -141,7 +141,7 @@ async function sendConfirmationEmail(env, email, city) {
   </p>
   
   <p style="font-size: 14px; color: #666; line-height: 1.6; margin: 0 0 24px 0;">
-    This link expires in 1 hour. You'll only hear from us when prices hit bottom. That's it.
+    This link expires in 24 hours. You'll only hear from us when prices hit bottom. That's it.
   </p>
   
   <hr style="border: none; border-top: 1px solid #e5e5e5; margin: 32px 0;">
@@ -186,11 +186,15 @@ async function handleSignup(request, env, ctx) {
   if (!email || !isValidEmail(email)) return json(request, { error: "Invalid email address" }, 400);
   if (!city || !CITIES.includes(city)) return json(request, { error: "Invalid city" }, 400);
 
-  // Don't let the form be used to flood one inbox. Respond identically either
-  // way so the endpoint doesn't reveal anything about the address.
+  // Don't let the form be used to flood one inbox: one confirmation email per
+  // address per 10 minutes, and tell the person rather than failing silently.
   const cooldownKey = `cooldown:${email}`;
   if (await env.SUBSCRIBERS.get(cooldownKey)) {
-    return json(request, { success: true, message: "Check your inbox to confirm" });
+    return json(request, {
+      success: true,
+      alreadySent: true,
+      message: "We sent you a link in the last 10 minutes. Check your inbox and spam folder."
+    });
   }
 
   const sent = await sendConfirmationEmail(env, email, city);

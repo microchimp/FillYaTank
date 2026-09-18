@@ -257,6 +257,13 @@ p {
   cursor: progress;
 }
 
+.form-promise {
+  font-size: 14px;
+  color: var(--text-muted);
+  text-align: center;
+  margin-top: 12px;
+}
+
 .form-note {
   font-size: 14px;
   color: var(--text-muted);
@@ -497,7 +504,7 @@ p {
 
 .chart-label {
   font-family: var(--font);
-  font-size: 20px;
+  font-size: 26px;
   fill: var(--text-muted);
 }
 
@@ -600,6 +607,22 @@ p {
   margin-top: 18px;
   font-size: 16px;
   font-weight: 600;
+}
+
+.city {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.city-note {
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.35;
+}
+
+.city-note:empty {
+  display: none;
 }
 
 .city-name {
@@ -806,6 +829,19 @@ p {
   display: none !important;
 }
 
+/* Below the two-column layout, centre the email preview and its note */
+@media (max-width: 899px) {
+  .hero-grid > div:last-child {
+    width: 100%;
+    max-width: 440px;
+    margin: 0 auto;
+  }
+
+  .email-preview {
+    max-width: none;
+  }
+}
+
 /* Larger screens */
 
 @media (min-width: 640px) {
@@ -843,13 +879,12 @@ p {
 /* Scratchpad style: handwriting for headings and notes, doodles       */
 /* ------------------------------------------------------------------ */
 
-/* One continuous dot grid across every section: fixed so dots line up at section edges */
+/* One dot grid across every section */
 body,
 .tone-white,
 .tone-tint,
 .tone-accent {
   background-size: 24px 24px;
-  background-attachment: fixed;
 }
 
 body {
@@ -911,8 +946,9 @@ body {
 
 .sticky-note {
   position: relative;
+  z-index: 2;
   width: fit-content;
-  margin: 20px 12px 0 auto;
+  margin: -26px -10px 0 auto;
   padding: 16px 28px 18px;
   font-family: var(--hand);
   font-weight: 700;
@@ -959,11 +995,11 @@ body {
 }
 
 .chart-callout {
-  font-size: 27px;
+  font-size: 31px;
 }
 
 .chart-badge-text {
-  font-size: 24px;
+  font-size: 26px;
 }
 
 /* Hand-drawn number circles, drawn in SVG so digits centre the same in every browser */

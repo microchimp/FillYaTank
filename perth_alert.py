@@ -26,6 +26,7 @@ import main
 
 RSS_URL = "https://www.fuelwatch.wa.gov.au/fuelwatch/fuelWatchRSS"
 USER_AGENT = "FillYaTank/1.0 (+https://fillyatank.app)"
+METRO_REGIONS = [25, 26, 27]  # FuelWatch: North of River, South of River, East/Hills
 JUMP_THRESHOLD = 5.0  # cents per litre, average across matched stations
 MIN_STATIONS = 100
 
@@ -37,15 +38,21 @@ SIMULATE = os.environ.get("SIMULATE_PERTH_JUMP", "").lower() == "true"
 
 
 def fetch_prices(day: str) -> tuple[str | None, dict[tuple[str, str], float]]:
-    """Metro unleaded prices for 'today' or 'tomorrow', keyed by station."""
-    response = requests.get(
-        RSS_URL,
-        params={"Product": 1, "Day": day},
-        headers={"User-Agent": USER_AGENT},
-        timeout=60,
-    )
-    response.raise_for_status()
-    items = ET.fromstring(response.content).findall(".//item")
+    """Perth metro unleaded prices for 'today' or 'tomorrow', keyed by station.
+
+    Without a Region the feed returns every station in WA, so ask for the
+    three metro regions explicitly.
+    """
+    items = []
+    for region in METRO_REGIONS:
+        response = requests.get(
+            RSS_URL,
+            params={"Product": 1, "Day": day, "Region": region},
+            headers={"User-Agent": USER_AGENT},
+            timeout=60,
+        )
+        response.raise_for_status()
+        items += ET.fromstring(response.content).findall(".//item")
     prices = {}
     date = None
     for item in items:
@@ -73,8 +80,10 @@ def run() -> int:
     print(f"Today {today_date}: {len(today)} stations · Tomorrow {tomorrow_date}: {len(tomorrow)} stations · matched {len(common)}")
 
     if not tomorrow or tomorrow_date == today_date or len(common) < MIN_STATIONS:
-        print("Tomorrow's prices aren't published yet (or too few stations to compare). Nothing to do.")
-        return 1
+        # Not a failure: the 4:30pm run tries again. last_run isn't updated,
+        # so the outage check still notices if this keeps happening.
+        print("Tomorrow's prices aren't published yet (or too few stations to compare). Will retry later.")
+        return 0
 
     today_avg = statistics.mean(today[k] for k in common)
     tomorrow_avg = statistics.mean(tomorrow[k] for k in common)
