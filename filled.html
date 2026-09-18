@@ -6,7 +6,7 @@
     <meta name="robots" content="noindex">
     <title>Thanks for filling up — FillYaTank</title>
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-    <link rel="stylesheet" href="/styles.css?v=22">
+    <link rel="stylesheet" href="/styles.css?v=23">
 </head>
 <body class="simple-page">
     <header class="site-header">
@@ -32,8 +32,9 @@
             <div id="success" class="hidden">
                 <svg class="state-icon ok" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M8 12.5l3 3 5-6"/></svg>
                 <h1>Nice one! ⛽</h1>
-                <p>Thanks for letting us know. Know someone who drives?</p>
-                <a class="button" href="/?ref=filled">Share FillYaTank</a>
+                <p>Thanks for letting us know.</p>
+                <p class="share-title">Know someone who drives?</p>
+                <div class="share-row" data-share-ref="share-filled"></div>
             </div>
 
             <div id="error" class="hidden">
@@ -68,5 +69,6 @@
 
         recordFill();
     </script>
+    <script src="/share.js?v=1"></script>
 </body>
 </html>

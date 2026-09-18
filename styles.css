@@ -681,6 +681,89 @@ p {
   padding: 12px 24px;
 }
 
+/* Share row */
+
+.share-title {
+  font-weight: 700;
+  color: var(--text) !important;
+  margin: 22px 0 10px !important;
+}
+
+.share-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+.share-btn {
+  font: inherit;
+  font-size: 15px;
+  font-weight: 650;
+  color: var(--accent-text);
+  background: var(--surface);
+  border: 1.5px solid var(--accent);
+  border-radius: 999px;
+  padding: 8px 16px;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.share-btn:hover {
+  background: var(--accent-soft);
+  color: var(--accent-text);
+}
+
+.share-btn-primary {
+  color: #fff;
+  background: var(--accent);
+}
+
+.share-btn-primary:hover {
+  background: var(--accent-hover);
+  color: #fff;
+}
+
+/* City pages */
+
+.city-status-title {
+  font-family: var(--hand);
+  font-weight: 700;
+  font-size: 30px;
+  color: var(--pencil);
+  margin: 0 0 12px;
+  transform: rotate(-1deg);
+}
+
+.city-copy {
+  max-width: 640px;
+  text-align: center;
+}
+
+.city-copy p {
+  font-size: 18px;
+  color: #3a423d;
+  margin: 0 auto 14px;
+}
+
+.city-links a {
+  font-weight: 600;
+}
+
+.city-name a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.city-name a:hover {
+  color: var(--accent-text);
+  text-decoration: underline;
+}
+
+.footer-cities {
+  margin-bottom: 8px;
+}
+
 /* FAQ */
 
 .faq {

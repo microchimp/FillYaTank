@@ -4,4 +4,24 @@
     <loc>https://fillyatank.app/</loc>
     <changefreq>weekly</changefreq>
   </url>
+  <url>
+    <loc>https://fillyatank.app/sydney</loc>
+    <changefreq>daily</changefreq>
+  </url>
+  <url>
+    <loc>https://fillyatank.app/melbourne</loc>
+    <changefreq>daily</changefreq>
+  </url>
+  <url>
+    <loc>https://fillyatank.app/brisbane</loc>
+    <changefreq>daily</changefreq>
+  </url>
+  <url>
+    <loc>https://fillyatank.app/adelaide</loc>
+    <changefreq>daily</changefreq>
+  </url>
+  <url>
+    <loc>https://fillyatank.app/perth</loc>
+    <changefreq>daily</changefreq>
+  </url>
 </urlset>
