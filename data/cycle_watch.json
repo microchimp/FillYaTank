@@ -1,0 +1,15 @@
+{
+  "paused_note": true,
+  "latest_low": {
+    "sydney": "2026-02-11",
+    "melbourne": "2026-02-03",
+    "brisbane": "2026-02-03",
+    "adelaide": "2026-02-14"
+  },
+  "buy": {
+    "sydney": "WAIT",
+    "melbourne": "WAIT",
+    "brisbane": "WAIT",
+    "adelaide": "WAIT"
+  }
+}

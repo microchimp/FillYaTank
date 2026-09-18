@@ -13,7 +13,7 @@ import re
 import hashlib
 import hmac
 import base64
-from datetime import datetime
+from datetime import datetime, timedelta
 from html import escape, unescape
 from pathlib import Path
 from urllib.parse import quote
@@ -287,6 +287,69 @@ def notify_new_wording(city: str, tip: str, decision: str, how: str) -> None:
     <p style="font-size: 16px; line-height: 1.6; margin: 0 0 16px 0; padding: 12px 16px; background: #f5f5f5; border-radius: 6px;">“{escape(tip)}”</p>
     <p style="font-size: 16px; line-height: 1.6; margin: 0 0 8px 0;">{action}</p>
     <p style="font-size: 14px; color: #666; line-height: 1.6; margin: 16px 0 0 0;">How it was decided: {escape(how)}</p>""")
+
+
+EASTERN_CITIES = ["sydney", "melbourne", "brisbane", "adelaide"]
+PAUSED_PHRASE = "have mostly not occurred"
+
+
+def cycle_signals(html: str) -> dict:
+    """
+    Signals that eastern price cycles have restarted:
+    - whether the ACCC still shows its 'cycles have mostly not occurred' note
+    - each city's latest completed cycle in the ACCC's 'past 5 price cycles'
+      table (the next low = first day + total days); a later date means the
+      ACCC has recorded a new cycle
+    """
+    soup = BeautifulSoup(html, "html.parser")
+    signals = {"paused_note": PAUSED_PHRASE in soup.get_text(" "), "latest_low": {}}
+    for city in EASTERN_CITIES:
+        heading = next((h for h in soup.find_all(["h2", "h3"])
+                        if h.get_text(" ", strip=True).lower() == f"petrol prices in {city}"), None)
+        table = heading.find_next("table") if heading else None
+        latest = None
+        for row in (table.find_all("tr") if table else []):
+            cells = [c.get_text(" ", strip=True) for c in row.find_all("td")]
+            try:
+                start = datetime.strptime(cells[0], "%a %d %b %y").date()
+                low = start + timedelta(days=int(cells[4]))
+            except (IndexError, ValueError):
+                continue
+            latest = max(latest or low, low)
+        signals["latest_low"][city] = latest.isoformat() if latest else None
+    return signals
+
+
+def watch_cycles(html: str, current_state: dict) -> None:
+    """Email the owner the first time eastern cycles show signs of restarting."""
+    path = DATA_DIR / "cycle_watch.json"
+    previous = json.loads(path.read_text()) if path.exists() else None
+    signals = cycle_signals(html)
+
+    changes = []
+    if previous:
+        if previous.get("paused_note") and not signals["paused_note"]:
+            changes.append("The ACCC has removed its note that cycles have mostly not occurred since the conflict began.")
+        for city in EASTERN_CITIES:
+            before, now = previous.get("latest_low", {}).get(city), signals["latest_low"].get(city)
+            if now and before and now > before:
+                changes.append(f"{city.capitalize()}: the ACCC recorded a new completed cycle (latest low {now}, was {before}).")
+    for city in EASTERN_CITIES:
+        if current_state.get(city) == "BUY" and (previous or {}).get("buy", {}).get(city) != "BUY":
+            changes.append(f"{city.capitalize()}: the ACCC says prices are around the lowest point of the cycle.")
+    signals["buy"] = {city: current_state.get(city) for city in EASTERN_CITIES}
+
+    if changes:
+        print("\n🔔 Cycle watch: " + " | ".join(changes))
+        items = "".join(f"<li>{escape(c)}</li>" for c in changes)
+        notify_owner("🔔 FillYaTank: eastern petrol price cycles may be back", f"""
+    <h2 style="margin: 0 0 16px 0;">Price cycles may be restarting</h2>
+    <ul style="font-size: 16px; line-height: 1.6;">{items}</ul>
+    <p style="font-size: 14px; color: #666; line-height: 1.6;">Check the <a href="{ACCC_URL}">ACCC petrol price cycles page</a>. Good moment for a launch post in that city.</p>""")
+    elif previous is None:
+        print("\nCycle watch: baseline recorded")
+    DATA_DIR.mkdir(exist_ok=True)
+    path.write_text(json.dumps(signals, indent=2) + "\n")
 
 
 def load_state() -> dict:
@@ -645,6 +708,10 @@ def main():
         save_state(current_state)
         save_wordings(wordings)
         save_tips(tips)
+        try:
+            watch_cycles(html, current_state)
+        except Exception as e:
+            print(f"Warning: cycle watch failed: {e}")
     
     # Send alerts for transitions
     if transitions:
