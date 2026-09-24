@@ -42,6 +42,13 @@ TEST_EMAIL = os.environ.get("TEST_EMAIL", "").lower().strip()
 # Goes to the TEST_EMAIL secret (the owner's address).
 STATS_REPORT = os.environ.get("STATS_REPORT", "").lower() == "true"
 
+# Quiet period: eastern price cycles have stopped, so there's nothing worth a
+# weekly email. Routine owner emails (the stats summary, notices about new ACCC
+# wording) are held back. Things the owner still needs to hear come through:
+# cycles restarting, a possible BUY awaiting confirmation, and a broken scrape.
+# Set to False when cycles restart to get the weekly summary back.
+QUIET_PERIOD = True
+
 # Debug mode: classify this text (rules, then AI if unclear) and exit. No side effects.
 CLASSIFY_TEXT = os.environ.get("CLASSIFY_TEXT", "").strip()
 
@@ -256,10 +263,17 @@ def resolve_phase(city: str, tip: str, wordings: dict) -> tuple[str, str, bool]:
     return "WAIT", f"AI: {ai_phase} ({reason})", True
 
 
-def notify_owner(subject: str, body_html: str) -> None:
-    """Email the owner (TEST_EMAIL secret) about something that needs attention."""
+def notify_owner(subject: str, body_html: str, routine: bool = True) -> None:
+    """Email the owner (TEST_EMAIL secret) about something that needs attention.
+
+    Routine notices are held back during the quiet period; pass routine=False
+    for anything the owner would want during it.
+    """
     if not TEST_EMAIL:
         print(f"Owner notice (no TEST_EMAIL set): {subject}")
+        return
+    if routine and QUIET_PERIOD:
+        print(f"Owner notice (quiet period, not sent): {subject}")
         return
     html_body = f"""<!DOCTYPE html>
 <html>
@@ -286,7 +300,8 @@ def notify_new_wording(city: str, tip: str, decision: str, how: str) -> None:
     <h2 style="margin: 0 0 16px 0;">New ACCC wording for {city.capitalize()}</h2>
     <p style="font-size: 16px; line-height: 1.6; margin: 0 0 16px 0; padding: 12px 16px; background: #f5f5f5; border-radius: 6px;">“{escape(tip)}”</p>
     <p style="font-size: 16px; line-height: 1.6; margin: 0 0 8px 0;">{action}</p>
-    <p style="font-size: 14px; color: #666; line-height: 1.6; margin: 16px 0 0 0;">How it was decided: {escape(how)}</p>""")
+    <p style="font-size: 14px; color: #666; line-height: 1.6; margin: 16px 0 0 0;">How it was decided: {escape(how)}</p>""",
+                 routine=not ai_says_buy)  # a possible BUY is a cycle-restart signal: always send
 
 
 EASTERN_CITIES = ["sydney", "melbourne", "brisbane", "adelaide"]
@@ -345,7 +360,9 @@ def watch_cycles(html: str, current_state: dict) -> None:
         notify_owner("🔔 FillYaTank: eastern petrol price cycles may be back", f"""
     <h2 style="margin: 0 0 16px 0;">Price cycles may be restarting</h2>
     <ul style="font-size: 16px; line-height: 1.6;">{items}</ul>
-    <p style="font-size: 14px; color: #666; line-height: 1.6;">Check the <a href="{ACCC_URL}">ACCC petrol price cycles page</a>. Good moment for a launch post in that city.</p>""")
+    <p style="font-size: 14px; color: #666; line-height: 1.6;">Check the <a href="{ACCC_URL}">ACCC petrol price cycles page</a>. Good moment for a launch post in that city.</p>
+    <p style="font-size: 14px; color: #666; line-height: 1.6;">Weekly stats emails are paused: set <code>QUIET_PERIOD = False</code> in <code>main.py</code> to start them again.</p>""",
+                     routine=False)
     elif previous is None:
         print("\nCycle watch: baseline recorded")
     DATA_DIR.mkdir(exist_ok=True)
@@ -656,7 +673,8 @@ def main():
     <h2 style="margin: 0 0 16px 0;">The ACCC page couldn't be read</h2>
     <p style="font-size: 16px; line-height: 1.6;">No buying tip was found for: <strong>{', '.join(c.capitalize() for c in empty)}</strong>.
     The page layout may have changed. State wasn't updated and no alerts were sent.</p>
-    <p style="font-size: 14px; color: #666; line-height: 1.6;">Check the latest "Fuel Price Check" run on GitHub and the ACCC page.</p>""")
+    <p style="font-size: 14px; color: #666; line-height: 1.6;">Check the latest "Fuel Price Check" run on GitHub and the ACCC page.</p>""",
+                         routine=False)
         return 1
     
     # Load previous state
@@ -740,9 +758,11 @@ def main():
     else:
         print("\nNo transitions detected. No alerts sent.")
     
-    # Weekly owner summary on the Monday scheduled run. A failure here must not
+    # Weekly owner summary on the Monday scheduled run, unless it's the quiet
+    # period (the workflow's "send stats report" button still works). A failure
+    # here must not
     # fail the run, or state.json wouldn't be committed and alerts would repeat.
-    if os.environ.get("GITHUB_EVENT_NAME") == "schedule" and datetime.utcnow().weekday() == 0:
+    if os.environ.get("GITHUB_EVENT_NAME") == "schedule" and datetime.utcnow().weekday() == 0 and not QUIET_PERIOD:
         try:
             send_stats_report()
         except Exception as e:
