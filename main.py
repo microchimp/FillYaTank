@@ -21,6 +21,7 @@ from zoneinfo import ZoneInfo
 
 import requests
 from bs4 import BeautifulSoup
+from curl_cffi import requests as curl_requests
 
 # Configuration
 ACCC_URL = "https://www.accc.gov.au/consumers/petrol-and-fuel/petrol-price-cycles-in-the-5-largest-cities"
@@ -55,8 +56,11 @@ CLASSIFY_TEXT = os.environ.get("CLASSIFY_TEXT", "").strip()
 
 def fetch_accc_page() -> str:
     """Fetch the ACCC petrol price cycles page."""
-    # No custom User-Agent: the ACCC's CDN rejects unrecognised agents with 403
-    response = requests.get(ACCC_URL, timeout=30)
+    # The ACCC site sits behind Akamai, which since early Oct 2026 returns 403 to
+    # any client whose TLS/HTTP2 fingerprint isn't a real browser's (a browser
+    # User-Agent header alone is not enough). curl_cffi impersonates Chrome's
+    # fingerprint; plain `requests` is still used for the Resend and worker APIs.
+    response = curl_requests.get(ACCC_URL, impersonate="chrome", timeout=30)
     response.raise_for_status()
     return response.text
 
