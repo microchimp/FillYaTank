@@ -1,7 +1,7 @@
 {
-  "sydney": "Prices have increased",
-  "melbourne": "Prices have increased",
-  "brisbane": "Prices have increased",
-  "adelaide": "Prices have increased",
-  "perth": "Prices appear to be around the lowest point of the cycle"
+  "sydney": "Prices have decreased",
+  "melbourne": "Prices have decreased",
+  "brisbane": "Prices have decreased",
+  "adelaide": "Prices have decreased",
+  "perth": "The price cycle is around a high point"
 }
